@@ -10,6 +10,7 @@ def test_email_address_validation():
     invalid_missing_domain = "missing_domain@.com"
     invalid_two_consecutive_at_sign = "invalid@@example.com"
     invalid_at_sign_in_extension = "invalid_email@example.@"
+    valid_email_uppercase = "VALID@gmail.com"
 
     assert EmailValidator.is_valid(valid_email) is True
     assert EmailValidator.is_valid(another_valid_email) is True
@@ -19,6 +20,7 @@ def test_email_address_validation():
     assert EmailValidator.is_valid(invalid_missing_domain) is False
     assert EmailValidator.is_valid(invalid_two_consecutive_at_sign) is False
     assert EmailValidator.is_valid(invalid_at_sign_in_extension) is False
+    assert EmailValidator.is_valid(valid_email_uppercase) is True
 
 
 def test_telephone_formatter():
