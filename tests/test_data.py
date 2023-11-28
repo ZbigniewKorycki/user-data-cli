@@ -1,23 +1,23 @@
 import re
 
 
-def test_phone_formatting():
+def test_telephone_formatting_pattern():
     sub_pattern = r"\s|\+48|\(48\)|^00"
 
-    phone_with_leading_zeros = "00847940862"
-    phone_with_area_code_and_plus = "+48844840862"
-    phone_with_area_code_in_parenthesis = "(48)123123123"
-    phone_with_spaces = "123 123 123"
-    phone_with_leading_zeros_and_spaces = "00 123 123 123"
+    telephone_with_leading_zeros = "00847940862"
+    telephone_with_area_code_and_plus = "+48844840862"
+    telephone_with_area_code_in_parenthesis = "(48)123123123"
+    telephone_with_spaces = "123 123 123"
+    telephone_with_leading_zeros_and_spaces = "00 123 123 123"
 
-    assert re.sub(sub_pattern, "", phone_with_leading_zeros) == "847940862"
-    assert re.sub(sub_pattern, "", phone_with_area_code_and_plus) == "844840862"
-    assert re.sub(sub_pattern, "", phone_with_area_code_in_parenthesis) == "123123123"
-    assert re.sub(sub_pattern, "", phone_with_spaces) == "123123123"
-    assert re.sub(sub_pattern, "", phone_with_leading_zeros_and_spaces) == "123123123"
+    assert re.sub(sub_pattern, "", telephone_with_leading_zeros) == "847940862"
+    assert re.sub(sub_pattern, "", telephone_with_area_code_and_plus) == "844840862"
+    assert re.sub(sub_pattern, "", telephone_with_area_code_in_parenthesis) == "123123123"
+    assert re.sub(sub_pattern, "", telephone_with_spaces) == "123123123"
+    assert re.sub(sub_pattern, "", telephone_with_leading_zeros_and_spaces) == "123123123"
 
 
-def test_email_validator():
+def test_email_address_validation_pattern():
     validation_pattern = r"(^[^@]+@[^@]+\.[a-zA-Z\d]{1,4}$)"
 
     valid_email = "valid@example.com"
