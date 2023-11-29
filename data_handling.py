@@ -4,6 +4,9 @@ import xml.etree.ElementTree as ET
 from typing import List
 import csv
 import json
+from scripts import logging_setup
+
+logger = logging_setup.setup_logging(__name__)
 
 
 class TelephoneHandler:
@@ -14,7 +17,7 @@ class TelephoneHandler:
         return re.sub(cls.FORMATTING_PATTERN, "", number)
 
     @staticmethod
-    def is_present(number: str) -> bool:
+    def is_phone_present(number) -> bool:
         return False if (number == "") or (number is None) or (number == []) else True
 
 
@@ -22,41 +25,41 @@ class EmailHandler:
     VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
 
     @classmethod
-    def is_valid(cls, email: str) -> bool:
-        return True if re.match(cls.VALIDATION_PATTERN, email, re.IGNORECASE) else False
+    def is_email_valid(cls, email) -> bool:
+        try:
+            validation = re.match(cls.VALIDATION_PATTERN, email, re.IGNORECASE)
+        except TypeError:
+            logger.debug("TypeError in email validation")
+            return False
+        else:
+            return True if validation else False
 
 
-class FileHandler:
+class DataConverter:
 
     @staticmethod
     def extract_file_extension_from_path(path_to_file: str) -> str:
         return path_to_file.rsplit(".", 1)[1]
 
-
-class DataConverter:
     @staticmethod
-    def xml_to_dict_list_with_email_and_phone_verification(
-            path_to_xml: str,
-    ) -> List[dict]:
+    def parse_xml_to_dict(path_to_xml: str) -> dict:
         tree = ET.parse(path_to_xml)
         root = tree.getroot()
-        data_dict = xmltodict.parse(ET.tostring(root))
+        return xmltodict.parse(ET.tostring(root))
 
-        formatted_users_data = []
-        for user in data_dict.get("users", {}).get("user", []):
-            if (user.get("telephone_number") is None) or (
-                    not EmailHandler.is_valid(user["email"])
-            ):
-                continue
-            user["telephone_number"] = EmailHandler.format_number(
-                user["telephone_number"]
-            )
-            if user["children"]:
-                user["children"] = user["children"]["child"]
-            else:
-                user["children"] = None
-            formatted_users_data.append(user)
-        return formatted_users_data
+    @staticmethod
+    def format_user_from_xml(user: dict):
+        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
+                user.get("email")):
+            return None
+        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
+        user["children"] = user["children"].get("child") if user.get("children") else None
+        return user
+
+    @staticmethod
+    def filter_valid_users_from_xml(data: List[dict]) -> List[dict]:
+        return [DataConverter.format_user_from_xml(user) for user in data if
+                DataConverter.format_user_from_xml(user)]
 
     @staticmethod
     def csv_to_dict_list_with_email_and_phone_verification(
@@ -82,7 +85,7 @@ class DataConverter:
                     children = None
                 email = row.get("email", "")
                 telephone = row.get("telephone_number", "")
-                if EmailHandler.is_valid(email) and telephone != "":
+                if EmailHandler.is_email_valid(email) and telephone != "":
                     telephone = TelephoneHandler.format_number(telephone)
                     user = {
                         "firstname": row.get("firstname", ""),
@@ -106,7 +109,7 @@ class DataConverter:
         with open(path_to_json) as file:
             data = json.load(file)
             for user in data:
-                if user["telephone_number"] != "" and EmailHandler.is_valid(
+                if user["telephone_number"] != "" and EmailHandler.is_email_valid(
                         user["email"]
                 ):
                     user["telephone_number"] = TelephoneHandler.format_number(
