@@ -12,17 +12,19 @@ def test_email_address_validation():
     invalid_at_sign_in_extension = "invalid_email@example.@"
     valid_email_uppercase = "VALID@gmail.com"
     invalid_email_two_dots = "INVALID@..com"
+    invalid_email_none = None
 
-    assert EmailHandler.is_valid(valid_email) is True
-    assert EmailHandler.is_valid(another_valid_email) is True
-    assert EmailHandler.is_valid(invalid_email_no_domain_and_extension) is False
-    assert EmailHandler.is_valid(invalid_email_with_missing_at_sign) is False
-    assert EmailHandler.is_valid(invalid_email_with_no_dot) is False
-    assert EmailHandler.is_valid(invalid_missing_domain) is False
-    assert EmailHandler.is_valid(invalid_two_consecutive_at_sign) is False
-    assert EmailHandler.is_valid(invalid_at_sign_in_extension) is False
-    assert EmailHandler.is_valid(valid_email_uppercase) is True
-    assert EmailHandler.is_valid(invalid_email_two_dots) is False
+    assert EmailHandler.is_email_valid(valid_email) is True
+    assert EmailHandler.is_email_valid(another_valid_email) is True
+    assert EmailHandler.is_email_valid(invalid_email_no_domain_and_extension) is False
+    assert EmailHandler.is_email_valid(invalid_email_with_missing_at_sign) is False
+    assert EmailHandler.is_email_valid(invalid_email_with_no_dot) is False
+    assert EmailHandler.is_email_valid(invalid_missing_domain) is False
+    assert EmailHandler.is_email_valid(invalid_two_consecutive_at_sign) is False
+    assert EmailHandler.is_email_valid(invalid_at_sign_in_extension) is False
+    assert EmailHandler.is_email_valid(valid_email_uppercase) is True
+    assert EmailHandler.is_email_valid(invalid_email_two_dots) is False
+    assert EmailHandler.is_email_valid(invalid_email_none) is False
 
 
 def test_telephone_formatter():
@@ -47,7 +49,7 @@ def test_is_phone_present():
     invalid_phone_empty_list = []
     invalid_phone_empty_str = ""
 
-    assert TelephoneHandler.is_present(valid_phone) is True
-    assert TelephoneHandler.is_present(invalid_phone_None) is False
-    assert TelephoneHandler.is_present(invalid_phone_empty_list) is False
-    assert TelephoneHandler.is_present(invalid_phone_empty_str) is False
+    assert TelephoneHandler.is_phone_present(valid_phone) is True
+    assert TelephoneHandler.is_phone_present(invalid_phone_None) is False
+    assert TelephoneHandler.is_phone_present(invalid_phone_empty_list) is False
+    assert TelephoneHandler.is_phone_present(invalid_phone_empty_str) is False
