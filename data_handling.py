@@ -102,22 +102,21 @@ class DataConverter:
             return users_data
 
     @staticmethod
-    def json_to_dict_list_with_email_and_phone_verification(
-            path_to_json: str,
-    ) -> List[dict]:
-        user_data = []
+    def read_json_file(path_to_json: str):
         with open(path_to_json) as file:
             data = json.load(file)
-            for user in data:
-                if user["telephone_number"] != "" and EmailHandler.is_email_valid(
-                        user["email"]
-                ):
-                    user["telephone_number"] = TelephoneHandler.format_number(
-                        user["telephone_number"]
-                    )
-                    if not user["children"]:
-                        user["children"] = None
-                    user_data.append(user)
-                else:
-                    continue
-        return user_data
+        return data
+
+    @staticmethod
+    def format_user_from_json(user: dict):
+        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
+                user.get("email")):
+            return None
+        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
+        user["children"] = user["children"].get("child") if user.get("children") else None
+        return user
+
+    @staticmethod
+    def filter_valid_users_from_json(data: List[dict]) -> List[dict]:
+        return [DataConverter.format_user_from_json(user) for user in data if
+                DataConverter.format_user_from_json(user)]
