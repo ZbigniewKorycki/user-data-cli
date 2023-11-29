@@ -42,64 +42,54 @@ class DataConverter:
         return path_to_file.rsplit(".", 1)[1]
 
     @staticmethod
+    def if_user_has_children(user: dict):
+        return False if (user["children"] == "") or (user["children"] is None) or (user["children"] == []) else True
+
+    @staticmethod
+    def get_children_info_from_csv(user: dict):
+        if not DataConverter.if_user_has_children(user):
+            return None
+        children = [
+            child.strip() for child in user["children"].split(",")
+        ]
+        children_info = [
+            {
+                "name": child.split("(")[0].strip(),
+                "age": int(child.split("(")[1].replace(")", "").strip()),
+            }
+            for child in children]
+        return children_info
+
+    @staticmethod
+    def get_children_info_from_xml(user: dict):
+        logger.info(f"{user}")
+        if not DataConverter.if_user_has_children(user):
+            return None
+        try:
+            children_info = user["children"].get("child")
+        except AttributeError:
+            return user["children"]
+        else:
+            return children_info
+
+
+    @staticmethod
+    def get_children_info_from_json(user: dict):
+        if not DataConverter.if_user_has_children(user):
+            return None
+        return user["children"].get("child")
+
+
+    @staticmethod
     def parse_xml_to_dict(path_to_xml: str) -> dict:
         tree = ET.parse(path_to_xml)
         root = tree.getroot()
         return xmltodict.parse(ET.tostring(root))
 
     @staticmethod
-    def format_user_from_xml(user: dict):
-        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
-                user.get("email")):
-            return None
-        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
-        user["children"] = user["children"].get("child") if user.get("children") else None
-        return user
-
-    @staticmethod
-    def filter_valid_users_from_xml(data: List[dict]) -> List[dict]:
-        return [DataConverter.format_user_from_xml(user) for user in data if
-                DataConverter.format_user_from_xml(user)]
-
-    @staticmethod
-    def csv_to_dict_list_with_email_and_phone_verification(
-            path_to_csv: str,
-    ) -> List[dict]:
-        users_data = []
+    def read_csv_file(path_to_csv: str):
         with open(path_to_csv, newline="") as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=";")
-            for row in reader:
-                children = []
-                if row["children"]:
-                    children_info = [
-                        child.strip() for child in row["children"].split(",")
-                    ]
-                    children = [
-                        {
-                            "name": info.split("(")[0].strip(),
-                            "age": int(info.split("(")[1].replace(")", "").strip()),
-                        }
-                        for info in children_info
-                    ]
-                else:
-                    children = None
-                email = row.get("email", "")
-                telephone = row.get("telephone_number", "")
-                if EmailHandler.is_email_valid(email) and telephone != "":
-                    telephone = TelephoneHandler.format_number(telephone)
-                    user = {
-                        "firstname": row.get("firstname", ""),
-                        "telephone_number": telephone,
-                        "email": email,
-                        "password": row.get("password", ""),
-                        "role": row.get("role", ""),
-                        "created_at": row.get("created_at", ""),
-                        "children": children,
-                    }
-                    users_data.append(user)
-                else:
-                    continue
-            return users_data
+            return csv.DictReader(csvfile, delimiter=";")
 
     @staticmethod
     def read_json_file(path_to_json: str):
@@ -108,13 +98,41 @@ class DataConverter:
         return data
 
     @staticmethod
-    def format_user_from_json(user: dict):
+    def format_user_from_xml(user: dict) -> dict:
         if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
                 user.get("email")):
             return None
         user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
-        user["children"] = user["children"].get("child") if user.get("children") else None
+        user["children"] = DataConverter.get_children_info_from_xml(user)
         return user
+
+    @staticmethod
+    def format_user_from_csv(user: dict) -> dict:
+        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or EmailHandler.is_email_valid(
+                user.get("email")):
+            return None
+        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
+        user["children"] = DataConverter.get_children_info_from_csv(user)
+        return user
+
+    @staticmethod
+    def format_user_from_json(user: dict) -> dict:
+        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
+                user.get("email")):
+            return None
+        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
+        user["children"] = DataConverter.get_children_info_from_json(user)
+        return user
+
+    @staticmethod
+    def filter_valid_users_from_xml(data: List[dict]) -> List[dict]:
+        return [DataConverter.format_user_from_xml(user) for user in data if
+                DataConverter.format_user_from_xml(user)]
+
+    @staticmethod
+    def filter_valid_users_from_csv(data: List[dict]) -> List[dict]:
+        return [DataConverter.format_user_from_csv(user) for user in data if
+                DataConverter.format_user_from_csv(user)]
 
     @staticmethod
     def filter_valid_users_from_json(data: List[dict]) -> List[dict]:
