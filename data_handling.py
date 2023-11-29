@@ -82,16 +82,14 @@ class DataConverterXML(DataConverter):
 
     @staticmethod
     def filter_valid_users_from_xml(data: List[dict]) -> List[dict]:
-        return [
-            DataConverterXML.format_user_from_xml(user)
-            for user in data
-            if DataConverterXML.format_user_from_xml(user)
-        ]
+        formatted_users = [DataConverterXML.format_user_from_xml(user)
+                           for user in data]
+        return [user for user in formatted_users if user is not None]
 
 
 class DataConverterCSV(DataConverter):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
 
     @staticmethod
     def read_csv_file(path_to_csv: str):
@@ -126,16 +124,14 @@ class DataConverterCSV(DataConverter):
 
     @staticmethod
     def filter_valid_users_from_csv(data: List[dict]) -> List[dict]:
-        return [
-            DataConverterCSV.format_user_from_csv(user)
-            for user in data
-            if DataConverterCSV.format_user_from_csv(user)
-        ]
+        formatted_users = [DataConverterCSV.format_user_from_csv(user)
+                           for user in data]
+        return [user for user in formatted_users if user is not None]
 
 
 class DataConverterJSON(DataConverter):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
 
     @staticmethod
     def read_json_file(path_to_json: str):
@@ -168,8 +164,6 @@ class DataConverterJSON(DataConverter):
 
     @staticmethod
     def filter_valid_users_from_json(data: List[dict]) -> List[dict]:
-        return [
-            DataConverterJSON.format_user_from_json(user)
-            for user in data
-            if DataConverterJSON.format_user_from_json(user)
-        ]
+        formatted_users = [DataConverterJSON.format_user_from_json(user)
+                           for user in data]
+        return [user for user in formatted_users if user is not None]
