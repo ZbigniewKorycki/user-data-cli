@@ -38,13 +38,7 @@ class DataConverter:
 
     @staticmethod
     def if_user_has_children(user: dict) -> bool:
-        return (
-            False
-            if (user["children"] == "")
-               or (user["children"] is None)
-               or (user["children"] == [])
-            else True
-        )
+        return True if "children" in user and user["children"] not in ["", None, []] else False
 
 
 class DataConverterXML(DataConverter):
@@ -92,9 +86,11 @@ class DataConverterCSV(DataConverter):
         super().__init__()
 
     @staticmethod
-    def read_csv_file(path_to_csv: str):
+    def read_csv_file(path_to_csv: str) -> List[dict]:
         with open(path_to_csv, newline="") as csvfile:
-            return csv.DictReader(csvfile, delimiter=";")
+            reader = csv.DictReader(csvfile, delimiter=";")
+            data = list(reader)
+        return data
 
     @staticmethod
     def get_children_info_from_csv(user: dict) -> Optional[Union[dict, list]]:
@@ -114,7 +110,7 @@ class DataConverterCSV(DataConverter):
     def format_user_from_csv(user: dict) -> Optional[dict]:
         if not TelephoneHandler.is_phone_present(
                 user.get("telephone_number")
-        ) or EmailHandler.is_email_valid(user.get("email")):
+        ) or not EmailHandler.is_email_valid(user.get("email")):
             return None
         user["telephone_number"] = TelephoneHandler.format_number(
             user["telephone_number"]
