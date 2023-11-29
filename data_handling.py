@@ -45,9 +45,58 @@ class DataConverter:
     def if_user_has_children(user: dict):
         return False if (user["children"] == "") or (user["children"] is None) or (user["children"] == []) else True
 
+
+class DataConverterXML(DataConverter):
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def get_children_info_from_xml(user: dict):
+        logger.info(f"{user}")
+        if not DataConverterXML.if_user_has_children(user):
+            return None
+        try:
+            children_info = user["children"].get("child")
+        except AttributeError:
+            return user["children"]
+        else:
+            return children_info
+
+    @staticmethod
+    def parse_xml_to_dict(path_to_xml: str) -> dict:
+        tree = ET.parse(path_to_xml)
+        root = tree.getroot()
+        return xmltodict.parse(ET.tostring(root))
+
+    @staticmethod
+    def format_user_from_xml(user: dict) -> dict:
+        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
+                user.get("email")):
+            return None
+        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
+        user["children"] = DataConverterXML.get_children_info_from_xml(user)
+        return user
+
+    @staticmethod
+    def filter_valid_users_from_xml(data: List[dict]) -> List[dict]:
+        return [DataConverterXML.format_user_from_xml(user) for user in data if
+                DataConverterXML.format_user_from_xml(user)]
+
+
+class DataConverterCSV(DataConverter):
+
+    def __init__(self):
+        super().__init__(self)
+
+    @staticmethod
+    def read_csv_file(path_to_csv: str):
+        with open(path_to_csv, newline="") as csvfile:
+            return csv.DictReader(csvfile, delimiter=";")
+
     @staticmethod
     def get_children_info_from_csv(user: dict):
-        if not DataConverter.if_user_has_children(user):
+        if not DataConverterCSV.if_user_has_children(user):
             return None
         children = [
             child.strip() for child in user["children"].split(",")
@@ -61,35 +110,24 @@ class DataConverter:
         return children_info
 
     @staticmethod
-    def get_children_info_from_xml(user: dict):
-        logger.info(f"{user}")
-        if not DataConverter.if_user_has_children(user):
+    def format_user_from_csv(user: dict) -> dict:
+        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or EmailHandler.is_email_valid(
+                user.get("email")):
             return None
-        try:
-            children_info = user["children"].get("child")
-        except AttributeError:
-            return user["children"]
-        else:
-            return children_info
-
+        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
+        user["children"] = DataConverterCSV.get_children_info_from_csv(user)
+        return user
 
     @staticmethod
-    def get_children_info_from_json(user: dict):
-        if not DataConverter.if_user_has_children(user):
-            return None
-        return user["children"].get("child")
+    def filter_valid_users_from_csv(data: List[dict]) -> List[dict]:
+        return [DataConverterCSV.format_user_from_csv(user) for user in data if
+                DataConverterCSV.format_user_from_csv(user)]
 
 
-    @staticmethod
-    def parse_xml_to_dict(path_to_xml: str) -> dict:
-        tree = ET.parse(path_to_xml)
-        root = tree.getroot()
-        return xmltodict.parse(ET.tostring(root))
+class DataConverterJSON(DataConverter):
 
-    @staticmethod
-    def read_csv_file(path_to_csv: str):
-        with open(path_to_csv, newline="") as csvfile:
-            return csv.DictReader(csvfile, delimiter=";")
+    def __init__(self):
+        super().__init__(self)
 
     @staticmethod
     def read_json_file(path_to_json: str):
@@ -98,22 +136,15 @@ class DataConverter:
         return data
 
     @staticmethod
-    def format_user_from_xml(user: dict) -> dict:
-        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or not EmailHandler.is_email_valid(
-                user.get("email")):
+    def get_children_info_from_json(user: dict):
+        if not DataConverterJSON.if_user_has_children(user):
             return None
-        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
-        user["children"] = DataConverter.get_children_info_from_xml(user)
-        return user
-
-    @staticmethod
-    def format_user_from_csv(user: dict) -> dict:
-        if not TelephoneHandler.is_phone_present(user.get("telephone_number")) or EmailHandler.is_email_valid(
-                user.get("email")):
-            return None
-        user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
-        user["children"] = DataConverter.get_children_info_from_csv(user)
-        return user
+        try:
+            children_info = user["children"].get("child")
+        except AttributeError:
+            return user["children"]
+        else:
+            return children_info
 
     @staticmethod
     def format_user_from_json(user: dict) -> dict:
@@ -121,20 +152,10 @@ class DataConverter:
                 user.get("email")):
             return None
         user["telephone_number"] = TelephoneHandler.format_number(user["telephone_number"])
-        user["children"] = DataConverter.get_children_info_from_json(user)
+        user["children"] = DataConverterJSON.get_children_info_from_json(user)
         return user
 
     @staticmethod
-    def filter_valid_users_from_xml(data: List[dict]) -> List[dict]:
-        return [DataConverter.format_user_from_xml(user) for user in data if
-                DataConverter.format_user_from_xml(user)]
-
-    @staticmethod
-    def filter_valid_users_from_csv(data: List[dict]) -> List[dict]:
-        return [DataConverter.format_user_from_csv(user) for user in data if
-                DataConverter.format_user_from_csv(user)]
-
-    @staticmethod
     def filter_valid_users_from_json(data: List[dict]) -> List[dict]:
-        return [DataConverter.format_user_from_json(user) for user in data if
-                DataConverter.format_user_from_json(user)]
+        return [DataConverterJSON.format_user_from_json(user) for user in data if
+                DataConverterJSON.format_user_from_json(user)]
