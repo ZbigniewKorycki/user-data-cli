@@ -39,3 +39,15 @@ def test_telephone_formatter():
     assert TelephoneHandler.format_number(phone_with_spaces) == "123123123"
     assert TelephoneHandler.format_number(phone_leading_zeros_and_spaces) == "123123123"
     assert TelephoneHandler.format_number(phone_correct) == "123123123"
+
+
+def test_is_phone_present():
+    valid_phone = "123333333"
+    invalid_phone_None = None
+    invalid_phone_empty_list = []
+    invalid_phone_empty_str = ""
+
+    assert TelephoneHandler.is_present(valid_phone) is True
+    assert TelephoneHandler.is_present(invalid_phone_None) is False
+    assert TelephoneHandler.is_present(invalid_phone_empty_list) is False
+    assert TelephoneHandler.is_present(invalid_phone_empty_str) is False
