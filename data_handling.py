@@ -57,10 +57,10 @@ class DataConverterXML(DataConverter):
             return children_info
 
     @staticmethod
-    def parse_xml_to_dict(path_to_xml: str) -> dict:
+    def parse_xml_to_dict(path_to_xml: str) -> List[dict]:
         tree = ET.parse(path_to_xml)
         root = tree.getroot()
-        return xmltodict.parse(ET.tostring(root))
+        return xmltodict.parse(ET.tostring(root))["users"]["user"]
 
     @staticmethod
     def format_user_from_xml(user: dict) -> Optional[dict]:
