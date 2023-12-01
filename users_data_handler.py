@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 from typing import List, Optional, Union
 import csv
 import json
+import pandas as pd
 
 
 class FileHandler:
@@ -123,7 +124,7 @@ class UsersDataProcessor(DataProcessor):
 
 
 class UsersDataHandler:
-    def __init__(self, path_to_file):
+    def __init__(self, path_to_file: str):
         self.file_handler = UsersFileHandler(path_to_file)
         self.data_processor = UsersDataProcessor()
 
@@ -131,3 +132,35 @@ class UsersDataHandler:
         data = self.file_handler.extract_data()
         processed_data = self.data_processor.process_data(data)
         return processed_data
+
+
+class UsersDataMerger:
+
+    def __init__(self, files_list: list):
+        self.files_list = files_list
+        self.merged_data = self.merge_users_data_from_multiple_files()
+
+    def merge_users_data_from_multiple_files(self) -> List[dict]:
+        merged_data = []
+        for file in self.files_list:
+            user = UsersDataHandler(file)
+            merged_data.extend(user.process_users_data())
+        return merged_data
+
+    def drop_duplicated_users_based_on_email(self):
+        df = pd.DataFrame(self.merged_data)
+        df = df.sort_values(by="created_at", ascending=False)
+        df_without_duplicated_email = df.drop_duplicates(subset=["email"], keep='first')
+        self.merged_data = df_without_duplicated_email
+
+    def drop_duplicated_users_based_on_telephone_number(self):
+        df = pd.DataFrame(self.merged_data)
+        df = df.sort_values(by="created_at", ascending=False)
+        df_without_duplicated_telephone_number = df.drop_duplicates(subset=["telephone_number"], keep='first')
+        self.merged_data = df_without_duplicated_telephone_number
+
+    def get_merged_data_without_duplicates(self):
+        self.drop_duplicated_users_based_on_telephone_number()
+        self.drop_duplicated_users_based_on_email()
+        return self.merged_data
+
