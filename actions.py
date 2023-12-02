@@ -1,5 +1,6 @@
 from process_users_data import data
 from scripts import logging_setup
+import itertools
 
 logger = logging_setup.setup_logging(__name__)
 
@@ -52,21 +53,34 @@ class Actions:
         return wrapper
 
     @authentication_required
-    def get_user_children(self):
+    def get_users_children(self):
         pass
 
     @authentication_required
-    def find_similar_children_age(self):
+    def find_users_with_similar_children(self):
         pass
 
     @admin_required
-    def count_all_accounts(self):
+    def count_all_users(self) -> int:
         return len(data)
 
     @admin_required
-    def get_oldest_account(self):
-        pass
+    def get_oldest_account(self) -> dict:
+        return data.sort_values(by="created_at").to_dict(orient="records")[0]
 
     @admin_required
     def get_users_children_grouped_by_age(self):
-        pass
+        children_data = data["children"].to_list()
+        filtered_children_without_none = [child for child in children_data if child is not None]
+        children = []
+        for user_children in filtered_children_without_none:
+            if isinstance(user_children, list):
+                for child in user_children:
+                    children.append(int(child["age"]))
+            else:
+                children.append(int(user_children["age"]))
+        sorted_data = sorted(children)
+        grouped_data = sorted([{"age": key, "count": len(list(group))} for key, group in itertools.groupby(sorted_data)],
+                               key=lambda x: x["count"])
+        return grouped_data
+
