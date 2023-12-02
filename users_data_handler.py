@@ -12,8 +12,14 @@ class FileHandler:
         self.path_to_file = path_to_file
         self.file_extension = self.extract_file_extension()
 
-    def extract_file_extension(self) -> str:
-        return self.path_to_file.rsplit(".", 1)[1]
+    def extract_file_extension(self) -> Optional[str]:
+        try:
+            file_extension = self.path_to_file.rsplit(".", 1)[1]
+        except IndexError:
+            print(f"File extension not recognized in: {self.path_to_file}")
+            return None
+        else:
+            return file_extension
 
     def extract_data(self) -> Union[List[dict], dict]:
         if self.file_extension == "xml":
@@ -23,9 +29,7 @@ class FileHandler:
         elif self.file_extension == "json":
             return self.read_json_file()
         else:
-            raise Exception(
-                f"Given file extension ({self.file_extension}) is not supported."
-            )
+            print(f"Given file extension ({self.file_extension}) is not supported.")
 
     def parse_xml_to_dict(self) -> dict:
         tree = ET.parse(self.path_to_file)
@@ -128,10 +132,20 @@ class UsersDataHandler:
         self.file_handler = UsersFileHandler(path_to_file)
         self.data_processor = UsersDataProcessor()
 
-    def process_users_data(self) -> List[dict]:
-        data = self.file_handler.extract_data()
-        processed_data = self.data_processor.process_data(data)
-        return processed_data
+    def process_users_data(self) -> Optional[List[dict]]:
+        try:
+            data = self.file_handler.extract_data()
+        except TypeError as e:
+            print(e)
+            return None
+        else:
+            try:
+                processed_data = self.data_processor.process_data(data)
+            except TypeError as e:
+                print(e)
+                return None
+            else:
+                return processed_data
 
 
 class UsersDataMerger:
@@ -144,7 +158,8 @@ class UsersDataMerger:
         merged_data = []
         for file in self.files_list:
             user = UsersDataHandler(file)
-            merged_data.extend(user.process_users_data())
+            if user.process_users_data() is not None:
+                merged_data.extend(user.process_users_data())
         return merged_data
 
     def drop_duplicated_users_based_on_email(self):
@@ -163,4 +178,3 @@ class UsersDataMerger:
         self.drop_duplicated_users_based_on_telephone_number()
         self.drop_duplicated_users_based_on_email()
         return self.merged_data
-
