@@ -3,40 +3,39 @@ from actions import Actions
 
 parser = ArgumentParser()
 
+commands_list = [
+    "print-all-accounts",
+    "print-oldest-account",
+    "group-by-age",
+    "print-children",
+    "find-similar-children-by-age",
+    "create-database",
+]
+
 parser.add_argument("command", type=str, help="enter command")
 parser.add_argument("--login", type=str, help="input user login")
 parser.add_argument("--password", type=str, help="input user password")
 args: Namespace = parser.parse_args()
 
-
-if args.command == "print-all-accounts":
+if args.command in commands_list:
     action = Actions(login=args.login, password=args.password)
-    result = action.count_all_users()
-    print(result)
 
-elif args.command == "print-oldest-account":
-    action = Actions(login=args.login, password=args.password)
-    oldest_account = action.get_oldest_account()
-    if oldest_account is not None:
-        print(
-            f"name: {oldest_account['firstname']}\n"
-            f"email_address: {oldest_account['email']}\n"
-            f"created_at: {oldest_account['created_at']}")
+    if args.command == "print-all-accounts":
+        action.print_all_accounts()
 
-elif args.command == "group-by-age":
-    action = Actions(login=args.login, password=args.password)
-    result = action.get_users_children_grouped_by_age()
-    for child in result:
-        print(f"age: {child['age']}, count: {child['count']}")
+    elif args.command == "print-oldest-account":
+        action.print_oldest_account()
 
-elif args.command == "print-children":
-    action = Actions(login=args.login, password=args.password)
-    action.get_user_children()
+    elif args.command == "group-by-age":
+        action.group_children_by_age()
 
+    elif args.command == "print-children":
+        action.get_user_children()
 
-elif args.command == "find-similar-children-by-age":
-    pass
-elif args.command == "create-database":
-    pass
+    elif args.command == "find-similar-children-by-age":
+        action.find_users_with_similar_children_by_age()
+
+    elif args.command == "create-database":
+        pass
 else:
     print("Unrecognized command")
