@@ -1,8 +1,10 @@
-from process_users_data import data
+from process_users_data import process_users_data, files
 import itertools
 
 
 class Actions:
+    users_data = process_users_data(files)
+
     def __init__(self, login, password):
         self.login = login
         self.password = password
@@ -13,12 +15,12 @@ class Actions:
 
     def authenticate_user(self):
         try:
-            user = data[
+            user = Actions.users_data[
                 (
-                        (data["email"] == self.login)
-                        | (data["telephone_number"] == self.login)
+                        (Actions.users_data["email"] == self.login)
+                        | (Actions.users_data["telephone_number"] == self.login)
                 )
-                & (data["password"] == self.password)
+                & (Actions.users_data["password"] == self.password)
                 ].to_dict(orient="records")[0]
         except IndexError:
             self.authenticated_user = False
@@ -60,7 +62,7 @@ class Actions:
     @authentication_required
     def find_users_with_similar_children_by_age(self):
         user_children_age = [int(child["age"]) for child in self.user_data["children"]]
-        users_with_children = data[data["children"].notna()]
+        users_with_children = Actions.users_data[Actions.users_data["children"].notna()]
         users_with_similar_children_age = users_with_children[
             users_with_children["children"].apply(
                 lambda x: (
@@ -79,11 +81,11 @@ class Actions:
 
     @admin_required
     def print_all_accounts(self):
-        print(len(data))
+        print(len(Actions.users_data))
 
     @admin_required
     def print_oldest_account(self):
-        oldest_account = data.sort_values(by="created_at").to_dict(orient="records")[0]
+        oldest_account = Actions.users_data.sort_values(by="created_at").to_dict(orient="records")[0]
         if oldest_account is not None:
             print(
                 f"name: {oldest_account['firstname']}\n"
@@ -93,18 +95,14 @@ class Actions:
 
     @admin_required
     def group_children_by_age(self):
-        # implement data[data["children"].notna()]
-        children_data = data["children"].to_list()
+        children_data = Actions.users_data["children"].to_list()
         filtered_children_without_none = [
             child for child in children_data if child is not None
         ]
         children = []
         for user_children in filtered_children_without_none:
-            if isinstance(user_children, list):
-                for child in user_children:
-                    children.append(int(child["age"]))
-            else:
-                children.append(int(user_children["age"]))
+            for child in user_children:
+                children.append(int(child["age"]))
         sorted_data = sorted(children)
         grouped_data = sorted(
             [
