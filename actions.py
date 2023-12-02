@@ -12,7 +12,9 @@ class Actions:
         self.password = password
         self.authenticated_user = False
         self.role = None
+        self.user_data = None
         self.authenticate_user()
+
 
     def authenticate_user(self):
         try:
@@ -25,6 +27,7 @@ class Actions:
             logger.info("Valid login - authenticate user")
             self.authenticated_user = True
             self.role = user["role"]
+            self.user_data = user
             logger.info(f"role: {self.role}")
 
     @staticmethod
@@ -49,12 +52,17 @@ class Actions:
                 return func(self, *args, **kwargs)
             else:
                 logger.info("Invalid login - authentication required")
-
         return wrapper
 
     @authentication_required
-    def get_users_children(self):
-        pass
+    def get_user_children(self):
+        children_info = self.user_data["children"]
+        if isinstance(children_info, list):
+            children_info.sort(key=lambda x: x["name"])
+            for child in children_info:
+                print(f"{child['name']}, {child['age']}")
+        else:
+            print(f"{children_info['name']}, {children_info['age']}")
 
     @authentication_required
     def find_users_with_similar_children(self):
