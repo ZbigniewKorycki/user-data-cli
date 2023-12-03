@@ -7,7 +7,7 @@ import json
 import pandas as pd
 
 
-class FileHandler:
+class UsersFileHandler:
     def __init__(self, path_to_file):
         self.path_to_file = path_to_file
         self.file_extension = self.extract_file_extension()
@@ -21,9 +21,9 @@ class FileHandler:
         else:
             return file_extension
 
-    def extract_data(self) -> Optional[Union[List[dict], dict]]:
+    def extract_data(self) -> Optional[List[dict]]:
         if self.file_extension.lower() == "xml":
-            return self.parse_xml_to_dict()
+            return self.parse_xml()
         elif self.file_extension.lower() == "csv":
             return self.read_csv_file()
         elif self.file_extension.lower() == "json":
@@ -32,11 +32,10 @@ class FileHandler:
             print(f"Given file extension ({self.file_extension}) is not supported.")
             return None
 
-
-    def parse_xml_to_dict(self) -> dict:
+    def parse_xml(self) -> List[dict]:
         tree = ET.parse(self.path_to_file)
         root = tree.getroot()
-        return xmltodict.parse(ET.tostring(root))
+        return xmltodict.parse(ET.tostring(root))["users"]["user"]
 
     def read_json_file(self) -> List[dict]:
         with open(self.path_to_file) as file:
@@ -48,16 +47,6 @@ class FileHandler:
             reader = csv.DictReader(csvfile, delimiter=";")
             data = list(reader)
         return data
-
-
-class UsersFileHandler(FileHandler):
-    def __init__(self, path_to_file):
-        super().__init__(path_to_file)
-
-    def parse_xml_to_dict(self) -> dict:
-        tree = ET.parse(self.path_to_file)
-        root = tree.getroot()
-        return xmltodict.parse(ET.tostring(root))["users"]["user"]
 
 
 class DataProcessor:
