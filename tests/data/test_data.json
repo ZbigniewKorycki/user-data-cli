@@ -1,0 +1,34 @@
+[
+  {
+    "firstname": "Test",
+    "telephone_number": "123123123",
+    "email": "test@example.org",
+    "password": "349fhgfsdk",
+    "role": "admin",
+    "created_at": "2021-03-11 04:34:88",
+    "children": []
+  },
+  {
+    "firstname": "test1",
+    "telephone_number": "48123123123",
+    "email": "test2@example.com",
+    "password": "asfh34@$t",
+    "role": "user",
+    "created_at": "2022-12-12 13:33:32",
+    "children": []
+  },
+  {
+    "firstname": "test2",
+    "telephone_number": "+48123123123",
+    "email": "test2@example.net",
+    "password": "sfsg90sgj$",
+    "role": "admin",
+    "created_at": "2022-03-05 23:08:55",
+    "children": [
+      {
+        "name": "Adam",
+        "age": 11
+      }
+    ]
+  }
+  ]
