@@ -21,7 +21,7 @@ class FileHandler:
         else:
             return file_extension
 
-    def extract_data(self) -> Union[List[dict], dict]:
+    def extract_data(self) -> Optional[Union[List[dict], dict]]:
         if self.file_extension.lower() == "xml":
             return self.parse_xml_to_dict()
         elif self.file_extension.lower() == "csv":
@@ -30,6 +30,8 @@ class FileHandler:
             return self.read_json_file()
         else:
             print(f"Given file extension ({self.file_extension}) is not supported.")
+            return None
+
 
     def parse_xml_to_dict(self) -> dict:
         tree = ET.parse(self.path_to_file)
