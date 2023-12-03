@@ -85,4 +85,28 @@ class TestUsersDataProcessor(unittest.TestCase):
         self.assertEqual(0, len(UsersDataProcessor.filter_valid_data(test_data1)))
         self.assertIsInstance(UsersDataProcessor.filter_valid_data(test_data1), list)
 
+    def test_is_data_present_in_user(self):
+        test_user = {
+            "firstname": "test",
+            "telephone_number": "",
+            "email": None,
+            "password": "test_password",
+            "role": "user",
+            "created_at": "2023-04-02 15:57:34",
+            "children": []
+        }
+        # Test case: check if email of value None is recognized as not present
+        self.assertFalse(UsersDataProcessor.is_data_present_in_user("email", test_user))
+
+        # Test case: check if phone of value "" is recognized as not present
+        self.assertFalse(UsersDataProcessor.is_data_present_in_user("telephone_number", test_user))
+
+        # Test case: check if children of value [] is recognized as not present
+        self.assertFalse(UsersDataProcessor.is_data_present_in_user("children", test_user))
+
+        # Test case: check if role of value "user" is recognized as present
+        self.assertTrue(UsersDataProcessor.is_data_present_in_user("role", test_user))
+
+
+
 
