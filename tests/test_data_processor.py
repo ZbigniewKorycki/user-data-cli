@@ -73,3 +73,16 @@ class TestUsersDataProcessor(unittest.TestCase):
         # Test case: phone correct format, nothing to change
         phone_correct = "123123123"
         self.assertEqual("123123123", UsersDataProcessor.format_telephone_number(phone_correct))
+
+    def test_filter_valid_data(self):
+        # Test case: valid test data as list of dict
+        test_data = [{"name": "user1"}, None, {"name": "user2"}, None]
+        self.assertEqual(2, len(UsersDataProcessor.filter_valid_data(test_data)))
+        self.assertIsInstance(UsersDataProcessor.filter_valid_data(test_data), list)
+
+        # Test case: valid test data as list of None values
+        test_data1 = [None, None, None, None]
+        self.assertEqual(0, len(UsersDataProcessor.filter_valid_data(test_data1)))
+        self.assertIsInstance(UsersDataProcessor.filter_valid_data(test_data1), list)
+
+

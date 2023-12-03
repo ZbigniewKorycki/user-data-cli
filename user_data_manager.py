@@ -54,7 +54,7 @@ class UsersDataProcessor:
     EMAIL_VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
 
     @staticmethod
-    def filter_valid_data(data: List[dict]) -> List[dict]:
+    def filter_valid_data(data: Optional[List[dict]]) -> Optional[List[dict]]:
         return [user for user in data if user is not None]
 
     @classmethod
