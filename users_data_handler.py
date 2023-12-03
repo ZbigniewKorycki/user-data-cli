@@ -25,9 +25,9 @@ class UsersFileHandler:
         if self.file_extension.lower() == "xml":
             return self.parse_xml()
         elif self.file_extension.lower() == "csv":
-            return self.read_csv_file()
+            return self.read_csv()
         elif self.file_extension.lower() == "json":
-            return self.read_json_file()
+            return self.read_json()
         else:
             print(f"Given file extension ({self.file_extension}) is not supported.")
             return None
@@ -37,12 +37,12 @@ class UsersFileHandler:
         root = tree.getroot()
         return xmltodict.parse(ET.tostring(root))["users"]["user"]
 
-    def read_json_file(self) -> List[dict]:
+    def read_json(self) -> List[dict]:
         with open(self.path_to_file) as file:
             data = json.load(file)
         return data
 
-    def read_csv_file(self) -> List[dict]:
+    def read_csv(self) -> List[dict]:
         with open(self.path_to_file, newline="") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=";")
             data = list(reader)
