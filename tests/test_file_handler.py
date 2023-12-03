@@ -59,21 +59,21 @@ class TestUsersFileHandler(unittest.TestCase):
             self.assertIn("created_at", user)
             self.assertIn("children", user)
 
-    @patch('users_data_handler.UsersFileHandler.read_csv')
+    @patch('user_data_manager.UsersFileHandler.read_csv')
     def test_extract_data_csv(self, mock_read_csv_function):
         # Test case: extract data when file with csv extension
         file_handler_csv = UsersFileHandler("./data/test_data.csv")
         file_handler_csv.extract_data()
         mock_read_csv_function.assert_called_once()
 
-    @patch('users_data_handler.UsersFileHandler.read_json')
+    @patch('user_data_manager.UsersFileHandler.read_json')
     def test_extract_data_json(self, mock_read_json_function):
         # Test case: extract data when file with json extension
         file_handler_json = UsersFileHandler("./data/test_data.json")
         file_handler_json.extract_data()
         mock_read_json_function.assert_called_once()
 
-    @patch('users_data_handler.UsersFileHandler.parse_xml')
+    @patch('user_data_manager.UsersFileHandler.parse_xml')
     def test_extract_data_xml(self, mock_parse_xml_function):
         # Test case: extract data when file with xml extension
         file_handler_xml = UsersFileHandler("./data/test_data.xml")
