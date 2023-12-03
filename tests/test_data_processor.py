@@ -64,7 +64,7 @@ class TestUsersDataProcessor(unittest.TestCase):
 
         # Test case: phone with space
         phone_with_spaces = "123 123 123"
-        self.assertEqual("123123123", UsersDataProcessor.format_telephone_number(phone_area_code_in_parentheses))
+        self.assertEqual("123123123", UsersDataProcessor.format_telephone_number(phone_with_spaces))
 
         # Test case: phone with leading zeros and spaces
         phone_zeros_spaces = "00 123 123 123"
