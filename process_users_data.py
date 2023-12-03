@@ -1,4 +1,4 @@
-from users_data_handler import UsersDataMerger
+from user_data_manager import UsersDataMerger
 
 
 def process_users_data(files_paths):
@@ -13,5 +13,3 @@ files = [
     "data/a/c/users_2.csv",
     "data/a/users.json"
 ]
-
-data = process_users_data(files)
