@@ -30,7 +30,7 @@ if args.command in commands_list:
         action.group_children_by_age()
 
     elif args.command == "print-children":
-        action.get_user_children()
+        action.print_user_children()
 
     elif args.command == "find-similar-children-by-age":
         action.find_users_with_similar_children_by_age()

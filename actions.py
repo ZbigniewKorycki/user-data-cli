@@ -50,14 +50,14 @@ class Actions:
         return wrapper
 
     @authentication_required
-    def get_user_children(self):
-        children_info = self.user_data["children"]
-        if isinstance(children_info, list):
-            children_info.sort(key=lambda x: x["name"])
-            for child in children_info:
+    def print_user_children(self):
+        children = self.user_data["children"]
+        if children:
+            children.sort(key=lambda x: x["name"])
+            for child in children:
                 print(f"{child['name']}, {child['age']}")
         else:
-            print(f"{children_info['name']}, {children_info['age']}")
+            print("User has no children.")
 
     @authentication_required
     def find_users_with_similar_children_by_age(self):
