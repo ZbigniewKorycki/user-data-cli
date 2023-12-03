@@ -1,5 +1,4 @@
-import argparse
-from argparse import Namespace, ArgumentParser, ArgumentTypeError
+from argparse import Namespace, ArgumentParser
 from actions import Actions
 import re
 from users_data_handler import UsersDataProcessor
