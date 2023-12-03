@@ -22,11 +22,11 @@ class FileHandler:
             return file_extension
 
     def extract_data(self) -> Union[List[dict], dict]:
-        if self.file_extension == "xml":
+        if self.file_extension.lower() == "xml":
             return self.parse_xml_to_dict()
-        elif self.file_extension == "csv":
+        elif self.file_extension.lower() == "csv":
             return self.read_csv_file()
-        elif self.file_extension == "json":
+        elif self.file_extension.lower() == "json":
             return self.read_json_file()
         else:
             print(f"Given file extension ({self.file_extension}) is not supported.")
