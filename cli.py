@@ -1,7 +1,12 @@
-from argparse import Namespace, ArgumentParser
+import argparse
+from argparse import Namespace, ArgumentParser, ArgumentTypeError
 from actions import Actions
+import re
+from users_data_handler import UsersDataProcessor
 
 parser = ArgumentParser()
+PHONE_VALIDATION_PATTERN = r"[\d]{9}"
+EMAIL_VALIDATION_PATTERN = UsersDataProcessor.EMAIL_VALIDATION_PATTERN
 
 commands_list = [
     "print-all-accounts",
@@ -12,8 +17,27 @@ commands_list = [
     "create-database",
 ]
 
+
+def validate_login(login):
+    try:
+        phone_validation = re.match(PHONE_VALIDATION_PATTERN, login)
+    except TypeError:
+        pass
+    else:
+        if phone_validation:
+            return login
+    try:
+        email_validation = re.match(EMAIL_VALIDATION_PATTERN, login, re.IGNORECASE)
+    except TypeError:
+        pass
+    else:
+        if email_validation:
+            return login
+    return "Invalid Login"
+
+
 parser.add_argument("command", type=str, help="enter command")
-parser.add_argument("--login", type=str, help="input user login")
+parser.add_argument("--login", type=validate_login, help="input user login")
 parser.add_argument("--password", type=str, help="input user password")
 args: Namespace = parser.parse_args()
 
