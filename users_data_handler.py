@@ -49,15 +49,13 @@ class UsersFileHandler:
         return data
 
 
-class DataProcessor:
+class UsersDataProcessor:
+    TELEPHONE_FORMATTING_PATTERN = r"\s|\+48|\(48\)|^00"
+    EMAIL_VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
+
     @staticmethod
     def filter_valid_data(data: List[dict]) -> List[dict]:
         return [user for user in data if user is not None]
-
-
-class UsersDataProcessor(DataProcessor):
-    TELEPHONE_FORMATTING_PATTERN = r"\s|\+48|\(48\)|^00"
-    EMAIL_VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
 
     @classmethod
     def format_telephone_number(cls, number: str) -> str:
@@ -114,7 +112,7 @@ class UsersDataProcessor(DataProcessor):
     @classmethod
     def process_data(cls, data: List[dict]) -> List[dict]:
         formatted_data = [cls.format_user_data(user) for user in data]
-        validated_data = DataProcessor.filter_valid_data(formatted_data)
+        validated_data = cls.filter_valid_data(formatted_data)
         return validated_data
 
 
