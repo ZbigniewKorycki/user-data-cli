@@ -1,7 +1,7 @@
 from argparse import Namespace, ArgumentParser
 from actions import Actions
 import re
-from users_data_handler import UsersDataProcessor
+from user_data_manager import UsersDataProcessor
 
 parser = ArgumentParser()
 PHONE_VALIDATION_PATTERN = r"[\d]{9}"
