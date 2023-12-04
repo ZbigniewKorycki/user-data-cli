@@ -53,13 +53,25 @@ class Actions:
 
     @authentication_required
     def print_user_children(self):
-        children = self.user_data["children"]
-        if children:
-            children.sort(key=lambda x: x["name"])
-            for child in children:
-                print(f"{child['name']}, {child['age']}")
+        if os.path.exists("./users_db.db"):
+            db_conn = SQLiteConnection()
+            children = db_conn.execute_query(
+                """SELECT child_name, child_age FROM users_children JOIN users_data ON parent_email = email WHERE users_children.parent_email = (?) OR users_data.telephone_number = (?);""",
+                params=(self.login, self.login), fetch_option="fetchall")
+            if children:
+                children.sort(key=lambda x: x[0])
+                for child in children:
+                    print(f"{child[0]}, {child[1]}")
+            else:
+                print(f"User with login: {self.login} has no children.")
         else:
-            print(f"User with login: {self.login} has no children.")
+            children = self.user_data["children"]
+            if children:
+                children.sort(key=lambda x: x["name"])
+                for child in children:
+                    print(f"{child['name']}, {child['age']}")
+            else:
+                print(f"User with login: {self.login} has no children.")
 
     @authentication_required
     def find_users_with_similar_children_by_age(self):
@@ -101,7 +113,9 @@ class Actions:
     def print_oldest_account(self):
         if os.path.exists("./users_db.db"):
             db_conn = SQLiteConnection()
-            firstname, email, created_at = db_conn.execute_query("""SELECT firstname, email, created_at FROM users_data ORDER BY created_AT ASC LIMIT 1;""", fetch_option="fetchall")[0]
+            firstname, email, created_at = db_conn.execute_query(
+                """SELECT firstname, email, created_at FROM users_data ORDER BY created_AT ASC LIMIT 1;""",
+                fetch_option="fetchall")[0]
             print(
                 f"name: {firstname}\n"
                 f"email_address: {email}\n"
@@ -196,4 +210,3 @@ class Actions:
                 REFERENCES users_data(email)
                 ON DELETE CASCADE
         );""")
-
