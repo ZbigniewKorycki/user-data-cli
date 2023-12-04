@@ -60,7 +60,7 @@ class TestUsersDataProcessor(unittest.TestCase):
 
         # Test case: phone with area code in parentheses
         phone_area_code_in_parentheses = "(48)123123123"
-        self.assertEqual("123123123",UsersDataProcessor.format_telephone_number(phone_area_code_in_parentheses))
+        self.assertEqual("123123123", UsersDataProcessor.format_telephone_number(phone_area_code_in_parentheses))
 
         # Test case: phone with space
         phone_with_spaces = "123 123 123"
@@ -107,6 +107,56 @@ class TestUsersDataProcessor(unittest.TestCase):
         # Test case: check if role of value "user" is recognized as present
         self.assertTrue(UsersDataProcessor.is_data_present_in_user("role", test_user))
 
+    def test_get_info_on_user_children(self):
+        # Test case: User with no children, from csv format
+        user_no_children_csv = {'firstname': 'Test', 'children': ''}
+        children_info_zero_csv = UsersDataProcessor.get_info_on_user_children(user_no_children_csv)
+        self.assertIs(None, children_info_zero_csv)
 
+        # Test case: User with one child, from csv format
+        user_one_child_csv = {'firstname': 'Test', 'children': 'Adam (1)'}
+        children_info_one_csv = UsersDataProcessor.get_info_on_user_children(user_one_child_csv)
+        self.assertEqual([{"name": "Adam", "age": "1"}], children_info_one_csv)
 
+        # Test case: User with three children, from csv format
+        user_three_children_csv = {'firstname': 'Test', 'children': 'Adam (1),Hellen (3),Peter (13)'}
+        children_info_three_csv = UsersDataProcessor.get_info_on_user_children(user_three_children_csv)
+        self.assertEqual([{"name": "Adam", "age": "1"}, {"name": "Hellen", "age": "3"}, {"name": "Peter", "age": "13"}],
+                         children_info_three_csv)
 
+        # Test case: User with no children, from json format
+        user_no_children_json = {"firstname": "Test", "children": []}
+        children_info_zero_json = UsersDataProcessor.get_info_on_user_children(user_no_children_json)
+        self.assertIs(None, children_info_zero_json)
+
+        # Test case: User with one child, from json format
+        user_one_children_json = {"firstname": "Test", "children": [{"name": "Test", "age": 18}]}
+        children_info_one_json = UsersDataProcessor.get_info_on_user_children(user_one_children_json)
+        self.assertEqual([{"name": "Test", "age": 18}], children_info_one_json)
+
+        # Test case: User with three children, from json format
+        user_three_children_json = {"firstname": "Test",
+                                    "children": [{"name": "Test1", "age": 17}, {"name": "Test2", "age": 8},
+                                                 {"name": "Test3", "age": 11}]}
+        children_info_three_json = UsersDataProcessor.get_info_on_user_children(user_three_children_json)
+        self.assertEqual([{"name": "Test1", "age": 17}, {"name": "Test2", "age": 8}, {"name": "Test3", "age": 11}],
+                         children_info_three_json)
+
+        # Test case: User with no children, from xml format
+        user_no_children_xml = {"firstname": "Test", "children": None}
+        children_info_zero_xml = UsersDataProcessor.get_info_on_user_children(user_no_children_xml)
+        self.assertIs(None, children_info_zero_xml)
+
+        # Test case: User with one child, from xml format
+        user_one_children_xml = {"firstname": "Test", "children": {'child': {'name': 'Teresa', 'age': '4'}}}
+        children_info_one_xml = UsersDataProcessor.get_info_on_user_children(user_one_children_xml)
+        self.assertEqual([{"name": "Teresa", "age": '4'}], children_info_one_xml)
+
+        # Test case: User with three children, from xml format
+        user_three_children_xml = {"firstname": "Test",
+                                   "children": {
+                                       'child': [{'name': 'Jennifer', 'age': 2}, {'name': 'Adam', 'age': 1},
+                                                 {'name': 'Omar', 'age': 10}]}}
+        children_info_three_xml = UsersDataProcessor.get_info_on_user_children(user_three_children_xml)
+        self.assertEqual([{"name": "Jennifer", "age": 2}, {"name": "Adam", "age": 1}, {'name': 'Omar', 'age': 10}],
+                         children_info_three_xml)

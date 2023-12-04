@@ -62,8 +62,8 @@ class UsersDataProcessor:
         return re.sub(cls.TELEPHONE_FORMATTING_PATTERN, "", number)
 
     @staticmethod
-    def is_data_present_in_user(data: str, user: dict) -> bool:
-        return True if data in user and user[data] not in ["", None, []] else False
+    def is_data_present_in_user(key: str, user: dict) -> bool:
+        return True if key in user and user[key] not in ["", None, []] else False
 
     @classmethod
     def is_email_address_valid(cls, email: Union[str, dict]) -> bool:
@@ -75,29 +75,29 @@ class UsersDataProcessor:
             return True if validation else False
 
     @classmethod
-    def get_info_on_user_children(cls, user: dict) -> Optional[Union[dict, list]]:
+    def get_info_on_user_children(cls, user: dict) -> Optional[List[dict]]:
         if not cls.is_data_present_in_user("children", user):
             return None
-        if "child" in user["children"]:
-            try:
-                children_info = user["children"].get("child")
-                return children_info if children_info is not None else user["children"]
-            except AttributeError:
-                return user["children"]
-        else:
-            try:
-                children = [child.strip() for child in user["children"].split(",")]
-            except AttributeError:
-                return user["children"]
+        children_data = user.get("children")
+        # Check if children from users data type xml
+        if isinstance(children_data, dict):
+            if isinstance(children_data.get("child"), dict):
+                return [children_data["child"]]
+            elif isinstance(children_data.get("child"), list):
+                return [child for child in children_data["child"]]
             else:
-                children_info = [
-                    {
-                        "name": child.split("(")[0].strip(),
-                        "age": int(child.split("(")[1].replace(")", "").strip()),
-                    }
-                    for child in children
-                ]
-                return children_info
+                return None
+        # Check if children from users data type json
+        elif isinstance(children_data, list):
+            return list(children_data)
+        # Else children from users data type csv
+        children = [child.strip() for child in children_data.split(",")]
+        return [
+            {
+                "name": child.split("(")[0].strip(),
+                "age": child.split("(")[1].replace(")", "").strip(),
+            }
+            for child in children]
 
     @classmethod
     def format_user_data(cls, user: dict) -> Optional[dict]:
