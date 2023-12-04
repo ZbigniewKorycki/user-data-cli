@@ -80,7 +80,8 @@ class Actions:
             if user["telephone_number"] == self.login or user["email"] == self.login:
                 continue
             children_sorted = sorted(user["children"], key=lambda x: x["name"])
-            print(f"{user['firstname']}, {user['telephone_number']}: {children_sorted}")
+            children_formatted = '; '.join(f"{child['name']}, {child['age']}" for child in children_sorted)
+            print(f"{user['firstname']}, {user['telephone_number']}: {children_formatted}")
 
     @admin_required
     def print_all_accounts(self):
