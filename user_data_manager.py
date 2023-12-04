@@ -99,6 +99,15 @@ class UsersDataProcessor:
             }
             for child in children]
 
+    @staticmethod
+    def convert_children_age_to_int(children_data: List[dict]) -> Optional[List[dict]]:
+        if children_data is None:
+            return children_data
+        else:
+            for child in children_data:
+                child["age"] = int(child["age"])
+        return children_data
+
     @classmethod
     def format_user_data(cls, user: dict) -> Optional[dict]:
         if not cls.is_data_present_in_user(
@@ -107,6 +116,7 @@ class UsersDataProcessor:
             return None
         user["telephone_number"] = cls.format_telephone_number(user["telephone_number"])
         user["children"] = cls.get_info_on_user_children(user)
+        user["children"] = cls.convert_children_age_to_int(user["children"])
         return user
 
     @classmethod
