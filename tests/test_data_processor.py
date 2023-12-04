@@ -178,3 +178,32 @@ class TestUsersDataProcessor(unittest.TestCase):
         test_children_data_one_invalid = [{"name": "Adam", "age": "one"}]
         result_after_conversion_invalid = UsersDataProcessor.convert_children_age_to_int(test_children_data_one_invalid)
         self.assertEqual([{"name": "Adam", "age": "one"}], test_children_data_one_invalid)
+
+    def test_format_user_data(self):
+        # Test case: valid user data, number to format, children data to format
+        test_user_valid = {"firstname": "Test", "telephone_number": "+48123123123",
+                           "email": "example@gmail.com", "password": "pass23451#", "role": "admin",
+                           "created_at": "2023-11-19 20:42:33",
+                           "children": "Michael (12),Theresa (6),Judith (1)"}
+        result_test_user_valid = UsersDataProcessor.format_user_data(test_user_valid)
+        self.assertEqual({"firstname": "Test", "telephone_number": "123123123",
+                          "email": "example@gmail.com", "password": "pass23451#", "role": "admin",
+                          "created_at": "2023-11-19 20:42:33",
+                          "children": [{"name": "Michael", "age": 12}, {"name": "Theresa", "age": 6},
+                                       {"name": "Judith", "age": 1}]}, result_test_user_valid)
+
+        # Test case: invalid user data, no tel number
+        test_user_invalid_no_tel = {"firstname": "Test", "telephone_number": "",
+                                    "email": "example@gmail.com", "password": "pass23451#", "role": "admin",
+                                    "created_at": "2023-11-19 20:42:33",
+                                    "children": "Michael (12),Theresa (6),Judith (1)"}
+        result_test_user_invalid_no_tel = UsersDataProcessor.format_user_data(test_user_invalid_no_tel)
+        self.assertIs(None, result_test_user_invalid_no_tel)
+
+        # Test case: invalid user data, invalid email - with two @
+        test_user_invalid_email = {"firstname": "Test", "telephone_number": "123123123",
+                                   "email": "example@@gmail.com", "password": "pass23451#", "role": "admin",
+                                   "created_at": "2023-11-19 20:42:33",
+                                   "children": "Michael (12),Theresa (6),Judith (1)"}
+        result_test_user_invalid_email = UsersDataProcessor.format_user_data(test_user_invalid_email)
+        self.assertIs(None, result_test_user_invalid_email)
