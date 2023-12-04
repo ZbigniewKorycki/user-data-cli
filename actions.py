@@ -99,15 +99,24 @@ class Actions:
 
     @admin_required
     def print_oldest_account(self):
-        oldest_account = Actions.users_data.sort_values(by="created_at").to_dict(
-            orient="records"
-        )[0]
-        if oldest_account is not None:
+        if os.path.exists("./users_db.db"):
+            db_conn = SQLiteConnection()
+            firstname, email, created_at = db_conn.execute_query("""SELECT firstname, email, created_at FROM users_data ORDER BY created_AT ASC LIMIT 1;""", fetch_option="fetchall")[0]
             print(
-                f"name: {oldest_account['firstname']}\n"
-                f"email_address: {oldest_account['email']}\n"
-                f"created_at: {oldest_account['created_at']}"
+                f"name: {firstname}\n"
+                f"email_address: {email}\n"
+                f"created_at: {created_at}"
             )
+        else:
+            oldest_account = Actions.users_data.sort_values(by="created_at").to_dict(
+                orient="records"
+            )[0]
+            if oldest_account is not None:
+                print(
+                    f"name: {oldest_account['firstname']}\n"
+                    f"email_address: {oldest_account['email']}\n"
+                    f"created_at: {oldest_account['created_at']}"
+                )
 
     @admin_required
     def group_children_by_age(self):
