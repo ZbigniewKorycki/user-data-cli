@@ -101,11 +101,12 @@ class UsersDataProcessor:
 
     @staticmethod
     def convert_children_age_to_int(children_data: List[dict]) -> Optional[List[dict]]:
-        if children_data is None:
-            return children_data
-        else:
+        if children_data is not None:
             for child in children_data:
-                child["age"] = int(child["age"])
+                try:
+                    child["age"] = int(child["age"])
+                except (ValueError, KeyError):
+                    pass
         return children_data
 
     @classmethod

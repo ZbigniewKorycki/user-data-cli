@@ -112,7 +112,8 @@ class Actions:
         children = []
         for user_children in filtered_children_without_none:
             for child in user_children:
-                children.append(child["age"])
+                if isinstance(child["age"], int):
+                    children.append(child["age"])
         sorted_data = sorted(children)
         grouped_data = sorted(
             [

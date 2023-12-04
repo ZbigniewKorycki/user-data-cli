@@ -160,3 +160,21 @@ class TestUsersDataProcessor(unittest.TestCase):
         children_info_three_xml = UsersDataProcessor.get_info_on_user_children(user_three_children_xml)
         self.assertEqual([{"name": "Jennifer", "age": 2}, {"name": "Adam", "age": 1}, {'name': 'Omar', 'age': 10}],
                          children_info_three_xml)
+
+    def test_convert_children_age_to_int(self):
+        # Test case: one child,  age as str
+        test_children_data_one = [{"name": "Adam", "age": "11"}]
+        result_after_conversion_one = UsersDataProcessor.convert_children_age_to_int(test_children_data_one)
+        self.assertEqual([{"name": "Adam", "age": 11}], result_after_conversion_one)
+
+        # Test case: three children, mixed type int/str
+        test_children_data_three = [{"name": "Adam", "age": "1"}, {"name": "Alex", "age": 2},
+                                    {"name": "Bob", "age": "4"}]
+        result_after_conversion_three = UsersDataProcessor.convert_children_age_to_int(test_children_data_three)
+        self.assertEqual([{"name": "Adam", "age": 1}, {"name": "Alex", "age": 2}, {"name": "Bob", "age": 4}],
+                         result_after_conversion_three)
+
+        # Test case: one child, invalid str to num
+        test_children_data_one_invalid = [{"name": "Adam", "age": "one"}]
+        result_after_conversion_invalid = UsersDataProcessor.convert_children_age_to_int(test_children_data_one_invalid)
+        self.assertEqual([{"name": "Adam", "age": "one"}], test_children_data_one_invalid)
