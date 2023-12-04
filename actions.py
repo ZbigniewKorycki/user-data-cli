@@ -17,11 +17,11 @@ class Actions:
         try:
             user = Actions.users_data[
                 (
-                        (Actions.users_data["email"] == self.login)
-                        | (Actions.users_data["telephone_number"] == self.login)
+                    (Actions.users_data["email"] == self.login)
+                    | (Actions.users_data["telephone_number"] == self.login)
                 )
                 & (Actions.users_data["password"] == self.password)
-                ].to_dict(orient="records")[0]
+            ].to_dict(orient="records")[0]
         except IndexError:
             self.authenticated_user = False
         else:
@@ -61,7 +61,7 @@ class Actions:
 
     @authentication_required
     def find_users_with_similar_children_by_age(self):
-        user_children_age = [int(child["age"]) for child in self.user_data["children"]]
+        user_children_age = [child["age"] for child in self.user_data["children"]]
         users_with_children = Actions.users_data[Actions.users_data["children"].notna()]
         users_with_similar_children_age = users_with_children[
             users_with_children["children"].apply(
@@ -85,7 +85,9 @@ class Actions:
 
     @admin_required
     def print_oldest_account(self):
-        oldest_account = Actions.users_data.sort_values(by="created_at").to_dict(orient="records")[0]
+        oldest_account = Actions.users_data.sort_values(by="created_at").to_dict(
+            orient="records"
+        )[0]
         if oldest_account is not None:
             print(
                 f"name: {oldest_account['firstname']}\n"
@@ -102,7 +104,7 @@ class Actions:
         children = []
         for user_children in filtered_children_without_none:
             for child in user_children:
-                children.append(int(child["age"]))
+                children.append(child["age"])
         sorted_data = sorted(children)
         grouped_data = sorted(
             [
