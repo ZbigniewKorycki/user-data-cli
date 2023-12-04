@@ -58,30 +58,34 @@ class Actions:
             for child in children:
                 print(f"{child['name']}, {child['age']}")
         else:
-            print("User has no children.")
+            print(f"User with login: {self.login} has no children.")
 
     @authentication_required
     def find_users_with_similar_children_by_age(self):
-        user_children_age = [child["age"] for child in self.user_data["children"]]
-        users_with_children = Actions.users_data[Actions.users_data["children"].notna()]
-        users_with_similar_children_age = users_with_children[
-            users_with_children["children"].apply(
-                lambda x: (
-                    any(
-                        child["age"] in user_children_age
-                        for child in x
-                        if isinstance(child, dict)
+        try:
+            user_children_age = [child["age"] for child in self.user_data["children"]]
+        except TypeError:
+            print(f"User with login: {self.login} has no children. Can not find any matches.")
+        else:
+            users_with_children = Actions.users_data[Actions.users_data["children"].notna()]
+            users_with_similar_children_age = users_with_children[
+                users_with_children["children"].apply(
+                    lambda x: (
+                        any(
+                            child["age"] in user_children_age
+                            for child in x
+                            if isinstance(child, dict)
+                        )
                     )
                 )
-            )
-        ]
-        similar_users = users_with_similar_children_age.to_dict(orient="records")
-        for user in similar_users:
-            if user["telephone_number"] == self.login or user["email"] == self.login:
-                continue
-            children_sorted = sorted(user["children"], key=lambda x: x["name"])
-            children_formatted = '; '.join(f"{child['name']}, {child['age']}" for child in children_sorted)
-            print(f"{user['firstname']}, {user['telephone_number']}: {children_formatted}")
+            ]
+            similar_users = users_with_similar_children_age.to_dict(orient="records")
+            for user in similar_users:
+                if user["telephone_number"] == self.login or user["email"] == self.login:
+                    continue
+                children_sorted = sorted(user["children"], key=lambda x: x["name"])
+                children_formatted = '; '.join(f"{child['name']}, {child['age']}" for child in children_sorted)
+                print(f"{user['firstname']}, {user['telephone_number']}: {children_formatted}")
 
     @admin_required
     def print_all_accounts(self):
