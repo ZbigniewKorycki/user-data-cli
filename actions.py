@@ -120,25 +120,31 @@ class Actions:
 
     @admin_required
     def group_children_by_age(self):
-        children_data = Actions.users_data["children"].to_list()
-        filtered_children_without_none = [
-            child for child in children_data if child is not None
-        ]
-        children = []
-        for user_children in filtered_children_without_none:
-            for child in user_children:
-                if isinstance(child["age"], int):
-                    children.append(child["age"])
-        sorted_data = sorted(children)
-        grouped_data = sorted(
+        if os.path.exists("./users_db.db"):
+            db_conn = SQLiteConnection()
+            result = db_conn.execute_query("""SELECT child_age from users_children""", fetch_option="fetchall")
+            children_ages = [child[0] for child in result]
+        else:
+            children_data = Actions.users_data["children"].to_list()
+            filtered_children_without_none = [
+                child for child in children_data if child is not None
+            ]
+            children_ages = []
+            for user_children in filtered_children_without_none:
+                for child in user_children:
+                    if isinstance(child["age"], int):
+                        children_ages.append(child["age"])
+
+        sorted_children_ages = sorted(children_ages)
+        grouped_children_ages = sorted(
             [
                 {"age": key, "count": len(list(group))}
-                for key, group in itertools.groupby(sorted_data)
+                for key, group in itertools.groupby(sorted_children_ages)
             ],
             key=lambda x: x["count"],
         )
-        for child in grouped_data:
-            print(f"age: {child['age']}, count: {child['count']}")
+        for child_age in grouped_children_ages:
+            print(f"age: {child_age['age']}, count: {child_age['count']}")
 
     @admin_required
     def create_database(self):
