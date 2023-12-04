@@ -1,8 +1,7 @@
 from process_users_data import process_users_data, files
 import itertools
-from typing import List
 from db_connection import SQLiteConnection
-from config import sqlite_config
+import os.path
 
 
 class Actions:
@@ -91,7 +90,12 @@ class Actions:
 
     @admin_required
     def print_all_accounts(self):
-        print(len(Actions.users_data))
+        if os.path.exists("./users_db.db"):
+            db_conn = SQLiteConnection()
+            result = db_conn.execute_query("""SELECT COUNT(*) FROM users_data;""", fetch_option="fetchone")[0]
+            print(result)
+        else:
+            print(len(Actions.users_data))
 
     @admin_required
     def print_oldest_account(self):
@@ -129,16 +133,52 @@ class Actions:
 
     @admin_required
     def create_database(self):
-        db_conn = SQLiteConnection(sqlite_config.db_file)
-        for index, row in Actions.users_data.iterrows():
-            db_conn.execute_query(
-                "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
-                 row['created_at'])
-            )
-            if row["children"] is not None:
-                for child in row["children"]:
-                    db_conn.execute_query(
-                        "INSERT INTO users_children (parent_email, child_name, child_age) VALUES (?, ?, ?)",
-                        (row['email'], child['name'], child['age'])
-                    )
+        if os.path.exists("./users_db.db"):
+            print("Database exists already.")
+        else:
+            db_conn = SQLiteConnection()
+            try:
+                Actions.create_starting_db_tables(db_conn)
+            except Exception:
+                print("Error while creating db tables.")
+            else:
+                try:
+                    for index, row in Actions.users_data.iterrows():
+                        db_conn.execute_query(
+                            "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                            (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
+                             row['created_at'])
+                        )
+                        if row["children"] is not None:
+                            for child in row["children"]:
+                                db_conn.execute_query(
+                                    "INSERT INTO users_children (parent_email, child_name, child_age) VALUES (?, ?, ?)",
+                                    (row['email'], child['name'], child['age'])
+                                )
+                except Exception:
+                    print("Error while filling in db tables.")
+                else:
+                    print("Database created.")
+
+    @staticmethod
+    def create_starting_db_tables(db_conn):
+        db_conn.execute_query("""CREATE TABLE IF NOT EXISTS users_data (
+            email TEXT PRIMARY KEY,
+            firstname TEXT NOT NULL,
+            telephone_number TEXT NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE (email, telephone_number)
+        );""")
+
+        db_conn.execute_query(
+            """CREATE TABLE IF NOT EXISTS users_children (
+            parent_email TEXT NOT NULL,
+            child_name TEXT NOT NULL,
+            child_age INTEGER NOT NULL,
+            FOREIGN KEY (parent_email)
+                REFERENCES users_data(email)
+                ON DELETE CASCADE
+        );""")
+
