@@ -1,6 +1,8 @@
 from process_users_data import process_users_data, files
 import itertools
 from typing import List
+from db_connection import SQLiteConnection
+from config import sqlite_config
 
 
 class Actions:
@@ -124,3 +126,19 @@ class Actions:
         )
         for child in grouped_data:
             print(f"age: {child['age']}, count: {child['count']}")
+
+    @admin_required
+    def create_database(self):
+        db_conn = SQLiteConnection(sqlite_config.db_file)
+        for index, row in Actions.users_data.iterrows():
+            db_conn.execute_query(
+                "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
+                 row['created_at'])
+            )
+            if row["children"] is not None:
+                for child in row["children"]:
+                    db_conn.execute_query(
+                        "INSERT INTO users_children (parent_email, child_name, child_age) VALUES (?, ?, ?)",
+                        (row['email'], child['name'], child['age'])
+                    )

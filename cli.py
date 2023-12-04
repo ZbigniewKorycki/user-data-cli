@@ -59,6 +59,6 @@ if args.command in commands_list:
         action.find_users_with_similar_children_by_age()
 
     elif args.command == "create-database":
-        pass
+        action.create_database()
 else:
     print("Unrecognized command")
