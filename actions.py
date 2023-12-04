@@ -1,5 +1,6 @@
 from process_users_data import process_users_data, files
 import itertools
+from typing import List
 
 
 class Actions:
@@ -17,11 +18,11 @@ class Actions:
         try:
             user = Actions.users_data[
                 (
-                    (Actions.users_data["email"] == self.login)
-                    | (Actions.users_data["telephone_number"] == self.login)
+                        (Actions.users_data["email"] == self.login)
+                        | (Actions.users_data["telephone_number"] == self.login)
                 )
                 & (Actions.users_data["password"] == self.password)
-            ].to_dict(orient="records")[0]
+                ].to_dict(orient="records")[0]
         except IndexError:
             self.authenticated_user = False
         else:
@@ -74,8 +75,10 @@ class Actions:
                 )
             )
         ]
-        users_similar = users_with_similar_children_age.to_dict(orient="records")
-        for user in users_similar:
+        similar_users = users_with_similar_children_age.to_dict(orient="records")
+        for user in similar_users:
+            if user["telephone_number"] == self.login or user["email"] == self.login:
+                continue
             children_sorted = sorted(user["children"], key=lambda x: x["name"])
             print(f"{user['firstname']}, {user['telephone_number']}: {children_sorted}")
 
