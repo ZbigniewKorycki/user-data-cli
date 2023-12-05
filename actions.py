@@ -1,7 +1,7 @@
 from users_data_processor import final_users_data
 import itertools
-from db_connection import SQLiteConnection
 import os.path
+import sqlite3
 
 
 class Actions:
@@ -53,10 +53,11 @@ class Actions:
     @authentication_required
     def print_user_children(self):
         if os.path.exists("./users_db.db"):
-            db_conn = SQLiteConnection()
-            children = db_conn.execute_query(
-                """SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
-                params=(self.login, self.login), fetch_option="fetchall")
+            db_conn = sqlite3.connect("users_db.db")
+            cursor = db_conn.cursor()
+            children = cursor.execute(
+                "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
+                (self.login, self.login)).fetchall()
             if children:
                 children.sort(key=lambda x: x[0])
                 for child in children:
@@ -75,16 +76,20 @@ class Actions:
     @authentication_required
     def find_users_with_similar_children_by_age(self):
         if os.path.exists("./users_db.db"):
-            db_conn = SQLiteConnection()
-            result_user_children = db_conn.execute_query(
+            db_conn = sqlite3.connect("users_db.db")
+            cursor = db_conn.cursor()
+            result_user_children = cursor.execute(
                 """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
-                params=(self.login, self.login), fetch_option="fetchall")
+                (self.login, self.login)).fetchall()
             user_children_ages = [child[0] for child in result_user_children]
-            users_with_similar_children_age = db_conn.execute_query("""SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(','.join('?' * len(user_children_ages))), params=user_children_ages,
-                fetch_option="fetchall")
+            users_with_similar_children_age = cursor.execute(
+                """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
+                    ','.join('?' * len(user_children_ages))), params=user_children_ages, ).fetchall()
             users_with_similar_children_age_list = [user[0] for user in users_with_similar_children_age]
             for user_id in users_with_similar_children_age_list:
-                result = db_conn.execute_query("""SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""", params=(user_id,), fetch_option="fetchall")
+                result = cursor.execute(
+                    """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""",
+                    (user_id,)).fetchall()
                 sorted_by_children_name = sorted(result, key=lambda x: x[3])
                 parent_name = sorted_by_children_name[0][0]
                 parent_telephone = sorted_by_children_name[0][2]
@@ -120,8 +125,9 @@ class Actions:
     @admin_required
     def print_all_accounts(self):
         if os.path.exists("./users_db.db"):
-            db_conn = SQLiteConnection()
-            result = db_conn.execute_query("""SELECT COUNT(*) FROM users_data;""", fetch_option="fetchone")[0]
+            db_conn = sqlite3.connect("users_db.db")
+            cursor = db_conn.cursor()
+            result = cursor.execute("""SELECT COUNT(*) FROM users_data;""").fetchone()[0]
             print(int(result))
         else:
             print(len(final_users_data))
@@ -129,10 +135,10 @@ class Actions:
     @admin_required
     def print_oldest_account(self):
         if os.path.exists("./users_db.db"):
-            db_conn = SQLiteConnection()
-            firstname, email, created_at = db_conn.execute_query(
-                """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;""",
-                fetch_option="fetchone")
+            db_conn = sqlite3.connect("users_db.db")
+            cursor = db_conn.cursor()
+            firstname, email, created_at = cursor.execute(
+                """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;""").fetchone()
             print(
                 f"name: {firstname}\n"
                 f"email_address: {email}\n"
@@ -152,8 +158,9 @@ class Actions:
     @admin_required
     def group_children_by_age(self):
         if os.path.exists("./users_db.db"):
-            db_conn = SQLiteConnection()
-            result = db_conn.execute_query("""SELECT child_age from users_children""", fetch_option="fetchall")
+            db_conn = sqlite3.connect("users_db.db")
+            cursor = db_conn.cursor()
+            result = cursor.execute("""SELECT child_age from users_children""").fetchall()
             children_ages = [child[0] for child in result]
         else:
             children_data = final_users_data["children"].to_list()
@@ -182,35 +189,38 @@ class Actions:
         if os.path.exists("./users_db.db"):
             print("Database exists already.")
         else:
-            db_conn = SQLiteConnection()
+            db_conn = sqlite3.connect("users_db.db")
+            cursor = db_conn.cursor()
             try:
-                Actions.create_starting_db_tables(db_conn)
-            except Exception:
-                print("Error while creating db tables.")
+                Actions.create_starting_db_tables(cursor)
+            except sqlite3.Error as e:
+                print("Error while creating db tables:", e)
+                db_conn.close()
             else:
                 try:
                     for index, row in final_users_data.iterrows():
-                        db_conn.execute_query(
+                        cursor.execute(
                             "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                             (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
-                             row['created_at'])
-                        )
-                        user_id = db_conn.execute_query("SELECT user_id FROM users_data WHERE email = ?",
-                                                        (row['email'],), fetch_option="fetchone")[0]
+                             row['created_at']))
+                        user_id = cursor.lastrowid
                         if row["children"] is not None:
                             for child in row["children"]:
-                                db_conn.execute_query(
+                                cursor.execute(
                                     "INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)",
                                     (user_id, child['name'], child['age'])
                                 )
-                except Exception:
-                    print("Error while filling in db tables.")
+                        db_conn.commit()
+                except sqlite3.Error as e:
+                    print("Error while filling in db tables:", e)
                 else:
                     print("Database created.")
+                finally:
+                    db_conn.close()
 
     @staticmethod
-    def create_starting_db_tables(db_conn):
-        db_conn.execute_query("""CREATE TABLE IF NOT EXISTS users_data (
+    def create_starting_db_tables(cursor):
+        cursor.execute("""CREATE TABLE IF NOT EXISTS users_data (
             user_id INTEGER PRIMARY KEY,
             email TEXT NOT NULL,
             firstname TEXT NOT NULL,
@@ -221,7 +231,7 @@ class Actions:
             UNIQUE (email, telephone_number)
         );""")
 
-        db_conn.execute_query(
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS users_children (
             parent_id INTEGER NOT NULL,
             child_name TEXT NOT NULL,

@@ -119,7 +119,6 @@ class UsersDataFormatter:
                 "telephone_number", user
         ) or not cls.is_email_address_valid(user.get("email")):
             return None
-        print(user)
         user["telephone_number"] = cls.format_telephone_number(user["telephone_number"])
         user["children"] = cls.get_info_on_user_children(user)
         user["children"] = cls.convert_children_age_to_int(user["children"])
