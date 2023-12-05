@@ -2,6 +2,7 @@ import unittest
 from actions import Actions
 from data.users_test_data_processor import test_final_users_data
 from unittest.mock import patch, call
+import os
 
 
 @patch('actions.final_users_data', test_final_users_data)
@@ -110,7 +111,6 @@ class TestActions(unittest.TestCase):
         action.print_user_children()
         mock_print.assert_called_with("User with login: 666666666 has no children.")
 
-
     @patch('builtins.print')
     def test_print_children_one_child(self, mock_print):
         # Test case, base user one child: Adam (1)
@@ -147,6 +147,14 @@ class TestActions(unittest.TestCase):
         total_calls = mock_print.call_count
         self.assertEqual(total_calls, 4)
 
+    def test_if_db_path_available(self):
+        # Test case: create db in tests folder
+        action = Actions(login='222222222', password='7GRMc-fg42')
+        self.assertFalse(action.if_db_available("./users_db.db"))
+        action.create_database()
+        self.assertTrue(action.if_db_available("./users_db.db"))
+        os.remove("./users_db.db")
+        self.assertFalse(action.if_db_available("./users_db.db"))
 
 
 if __name__ == "__main__":
