@@ -2,9 +2,11 @@ from users_data_processor import final_users_data
 import itertools
 import os.path
 import sqlite3
+import os
 
 
 class Actions:
+    db_path = './users_db.db'
 
     def __init__(self, login, password):
         self.login = login
@@ -13,6 +15,7 @@ class Actions:
         self.role = None
         self.user_data = None
         self.authenticate_user()
+        self.db_available = Actions.if_db_available()
 
     def authenticate_user(self):
         try:
@@ -50,10 +53,14 @@ class Actions:
 
         return wrapper
 
+    @classmethod
+    def if_db_available(cls) -> bool:
+        return True if os.path.exists(cls.db_path) else False
+
     @authentication_required
     def print_user_children(self):
-        if os.path.exists("./users_db.db"):
-            db_conn = sqlite3.connect("users_db.db")
+        if self.db_available:
+            db_conn = sqlite3.connect(Actions.db_path)
             cursor = db_conn.cursor()
             try:
                 children = cursor.execute(
@@ -81,8 +88,8 @@ class Actions:
 
     @authentication_required
     def find_users_with_similar_children_by_age(self):
-        if os.path.exists("./users_db.db"):
-            db_conn = sqlite3.connect("users_db.db")
+        if self.db_available:
+            db_conn = sqlite3.connect(Actions.db_path)
             cursor = db_conn.cursor()
             try:
                 result_user_children = cursor.execute(
@@ -146,8 +153,8 @@ class Actions:
 
     @admin_required
     def print_all_accounts(self):
-        if os.path.exists("./users_db.db"):
-            db_conn = sqlite3.connect("users_db.db")
+        if self.db_available:
+            db_conn = sqlite3.connect(Actions.db_path)
             cursor = db_conn.cursor()
             try:
                 result = cursor.execute("""SELECT COUNT(*) FROM users_data;""").fetchone()[0]
@@ -161,8 +168,8 @@ class Actions:
 
     @admin_required
     def print_oldest_account(self):
-        if os.path.exists("./users_db.db"):
-            db_conn = sqlite3.connect("users_db.db")
+        if self.db_available:
+            db_conn = sqlite3.connect(Actions.db_path)
             cursor = db_conn.cursor()
             try:
                 firstname, email, created_at = cursor.execute(
@@ -189,8 +196,8 @@ class Actions:
 
     @admin_required
     def group_children_by_age(self):
-        if os.path.exists("./users_db.db"):
-            db_conn = sqlite3.connect("users_db.db")
+        if self.db_available:
+            db_conn = sqlite3.connect(Actions.db_path)
             cursor = db_conn.cursor()
             try:
                 result = cursor.execute("""SELECT child_age from users_children""").fetchall()
@@ -224,10 +231,10 @@ class Actions:
 
     @admin_required
     def create_database(self):
-        if os.path.exists("./users_db.db"):
+        if self.db_available:
             print("Database exists already.")
         else:
-            db_conn = sqlite3.connect("users_db.db")
+            db_conn = sqlite3.connect(Actions.db_path)
             cursor = db_conn.cursor()
             try:
                 Actions.create_starting_db_tables(cursor)
