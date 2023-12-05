@@ -238,30 +238,36 @@ class Actions:
             cursor = db_conn.cursor()
             try:
                 Actions.create_starting_db_tables(cursor)
+                Actions.add_users_data_to_db(db_conn, final_users_data)
             except sqlite3.Error as e:
-                print("Error while creating db tables:", e)
-                db_conn.close()
+                print("Error while creating/filling db tables:", e)
             else:
-                try:
-                    for index, row in final_users_data.iterrows():
+                print("Database created and users data added.")
+            finally:
+                db_conn.close()
+
+    @staticmethod
+    def add_users_data_to_db(db_conn, users_data):
+        cursor = db_conn.cursor()
+        try:
+            for index, row in users_data.iterrows():
+                cursor.execute(
+                    "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
+                     row['created_at']))
+                user_id = cursor.lastrowid
+                if row["children"] is not None:
+                    for child in row["children"]:
                         cursor.execute(
-                            "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-                            (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
-                             row['created_at']))
-                        user_id = cursor.lastrowid
-                        if row["children"] is not None:
-                            for child in row["children"]:
-                                cursor.execute(
-                                    "INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)",
-                                    (user_id, child['name'], child['age'])
-                                )
-                        db_conn.commit()
-                except sqlite3.Error as e:
-                    print("Error while filling in db tables:", e)
-                else:
-                    print("Database created.")
-                finally:
-                    db_conn.close()
+                            "INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)",
+                            (user_id, child['name'], child['age'])
+                        )
+                db_conn.commit()
+        except sqlite3.Error as e:
+            print("Error while filling in db tables:", e)
+            db_conn.rollback()
+        finally:
+            db_conn.close()
 
     @staticmethod
     def create_starting_db_tables(cursor):
