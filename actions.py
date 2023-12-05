@@ -56,7 +56,7 @@ class Actions:
         if os.path.exists("./users_db.db"):
             db_conn = SQLiteConnection()
             children = db_conn.execute_query(
-                """SELECT child_name, child_age FROM users_children JOIN users_data ON parent_email = email WHERE users_children.parent_email = (?) OR users_data.telephone_number = (?);""",
+                """SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
                 params=(self.login, self.login), fetch_option="fetchall")
             if children:
                 children.sort(key=lambda x: x[0])
@@ -78,21 +78,19 @@ class Actions:
         if os.path.exists("./users_db.db"):
             db_conn = SQLiteConnection()
             result_user_children = db_conn.execute_query(
-                """SELECT child_age FROM users_children JOIN users_data ON parent_email = email WHERE users_children.parent_email = (?) OR users_data.telephone_number = (?);""",
+                """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
                 params=(self.login, self.login), fetch_option="fetchall")
             user_children_ages = [child[0] for child in result_user_children]
-            result_similar_users_children = db_conn.execute_query(
-                """SELECT firstname, email, telephone_number, child_name, child_age FROM users_children JOIN users_data ON parent_email = email WHERE child_age IN ({});""".format(','.join('?' * len(user_children_ages))),
-                params=user_children_ages,
+            users_with_similar_children_age = db_conn.execute_query("""SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(','.join('?' * len(user_children_ages))), params=user_children_ages,
                 fetch_option="fetchall")
-            sorted_similar_users = sorted(result_similar_users_children, key=lambda x: x[1])
-            filtered_users = list(filter(lambda x: self.login not in x, sorted_similar_users))
-            grouped_data = {key: list(group) for key, group in itertools.groupby(filtered_users, key=lambda x: x[2])}
-            for key, value in grouped_data.items():
-                name = value[0][0]
-                sorted_value = sorted(value, key=lambda x: x[3])
-                children_formatted = '; '.join(f"{child[3]}, {child[4]}" for child in sorted_value)
-                print(f"{name}, {key}: {children_formatted}")
+            users_with_similar_children_age_list = [user[0] for user in users_with_similar_children_age]
+            for user_id in users_with_similar_children_age_list:
+                result = db_conn.execute_query("""SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""", params=(user_id,), fetch_option="fetchall")
+                sorted_by_children_name = sorted(result, key=lambda x: x[3])
+                parent_name = sorted_by_children_name[0][0]
+                parent_telephone = sorted_by_children_name[0][2]
+                children_formatted = '; '.join(f"{child[3]}, {child[4]}" for child in sorted_by_children_name)
+                print(f"{parent_name}, {parent_telephone}: {children_formatted}")
 
         else:
             try:
@@ -134,8 +132,8 @@ class Actions:
         if os.path.exists("./users_db.db"):
             db_conn = SQLiteConnection()
             firstname, email, created_at = db_conn.execute_query(
-                """SELECT firstname, email, created_at FROM users_data ORDER BY created_AT ASC LIMIT 1;""",
-                fetch_option="fetchall")[0]
+                """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;""",
+                fetch_option="fetchone")
             print(
                 f"name: {firstname}\n"
                 f"email_address: {email}\n"
