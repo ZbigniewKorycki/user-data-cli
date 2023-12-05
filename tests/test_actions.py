@@ -136,7 +136,7 @@ class TestActions(unittest.TestCase):
     def test_find_similar_children_by_age(self, mock_print):
         # Test case: base user three children: Robert (14),Alex (6),Harry (9)
         action = Actions(login='888888888', password='dQbafj:B:&')
-        action.find_users_with_similar_children_by_age()
+        action.find_similar_children_by_age()
         expected_calls = [
             call("Test5, 555555555: Hellen, 1; Peter, 6"),
             call("Test7, 777777777: John, 6; Marie, 1"),
@@ -150,11 +150,11 @@ class TestActions(unittest.TestCase):
     def test_if_db_path_available(self):
         # Test case: create db in tests folder
         action = Actions(login='222222222', password='7GRMc-fg42')
-        self.assertFalse(action.if_db_available("./users_db.db"))
+        self.assertFalse(action.is_db_available("./users_db.db"))
         action.create_database()
-        self.assertTrue(action.if_db_available("./users_db.db"))
+        self.assertTrue(action.is_db_available("./users_db.db"))
         os.remove("./users_db.db")
-        self.assertFalse(action.if_db_available("./users_db.db"))
+        self.assertFalse(action.is_db_available("./users_db.db"))
 
 
 if __name__ == "__main__":

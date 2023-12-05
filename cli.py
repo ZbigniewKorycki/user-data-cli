@@ -56,7 +56,7 @@ if args.command in commands_list:
         action.print_user_children()
 
     elif args.command == "find-similar-children-by-age":
-        action.find_users_with_similar_children_by_age()
+        action.find_similar_children_by_age()
 
     elif args.command == "create-database":
         action.create_database()
