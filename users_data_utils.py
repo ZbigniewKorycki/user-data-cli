@@ -100,8 +100,9 @@ class UsersDataFormatter:
                 "name": child.split("(")[0].strip(),
                 "age": child.split("(")[1].replace(")", "").strip(),
             }
-            for child in children if child != '']
-
+            for child in children
+            if child != ""
+        ]
 
     @staticmethod
     def convert_children_age_to_int(children_data: List[dict]) -> Optional[List[dict]]:
@@ -116,7 +117,7 @@ class UsersDataFormatter:
     @classmethod
     def format_user_data(cls, user: dict) -> Optional[dict]:
         if not cls.is_data_present_in_user(
-                "telephone_number", user
+            "telephone_number", user
         ) or not cls.is_email_address_valid(user.get("email")):
             return None
         user["telephone_number"] = cls.format_telephone_number(user["telephone_number"])
@@ -126,7 +127,9 @@ class UsersDataFormatter:
 
     def process_data(self) -> Optional[List[dict]]:
         try:
-            formatted_data = [UsersDataFormatter.format_user_data(user) for user in self.data]
+            formatted_data = [
+                UsersDataFormatter.format_user_data(user) for user in self.data
+            ]
             validated_data = UsersDataFormatter.filter_valid_data(formatted_data)
         except Exception as e:
             print(f"Encounter error processing data: {e}")
@@ -135,7 +138,6 @@ class UsersDataFormatter:
 
 
 class UsersDataMerger:
-
     def __init__(self, files_path):
         self.files_path = files_path
         self.df_merged_users_data = None
@@ -153,8 +155,14 @@ class UsersDataMerger:
         try:
             self.df_merged_users_data = pd.DataFrame(merged_data)
             if not self.df_merged_users_data.empty:
-                self.df_merged_users_data = self.df_merged_users_data.sort_values(by="created_at", ascending=False)
-                self.df_merged_users_data.drop_duplicates(subset=["telephone_number"], keep='first', inplace=True)
-                self.df_merged_users_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
+                self.df_merged_users_data = self.df_merged_users_data.sort_values(
+                    by="created_at", ascending=False
+                )
+                self.df_merged_users_data.drop_duplicates(
+                    subset=["telephone_number"], keep="first", inplace=True
+                )
+                self.df_merged_users_data.drop_duplicates(
+                    subset=["email"], keep="first", inplace=True
+                )
         except Exception as e:
             print(f"Error processing merged data: {e}")

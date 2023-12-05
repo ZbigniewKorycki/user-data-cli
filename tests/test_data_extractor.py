@@ -4,7 +4,6 @@ from users_data_utils import UsersDataExtractor
 
 
 class TestUsersDataExtractor(unittest.TestCase):
-
     def test_extract_file_extension(self):
         # Test case: Valid file path with extension
         file_handler = UsersDataExtractor("/path/to/example.csv")
@@ -58,21 +57,21 @@ class TestUsersDataExtractor(unittest.TestCase):
             self.assertIn("created_at", user)
             self.assertIn("children", user)
 
-    @patch('users_data_utils.UsersDataExtractor.read_csv')
+    @patch("users_data_utils.UsersDataExtractor.read_csv")
     def test_extract_data_csv(self, mock_read_csv_function):
         # Test case: extract data when file with csv extension
         file_handler_csv = UsersDataExtractor("./data/test_data.csv")
         file_handler_csv.extract_data()
         mock_read_csv_function.assert_called_once()
 
-    @patch('users_data_utils.UsersDataExtractor.read_json')
+    @patch("users_data_utils.UsersDataExtractor.read_json")
     def test_extract_data_json(self, mock_read_json_function):
         # Test case: extract data when file with json extension
         file_handler_json = UsersDataExtractor("./data/test_data.json")
         file_handler_json.extract_data()
         mock_read_json_function.assert_called_once()
 
-    @patch('users_data_utils.UsersDataExtractor.parse_xml')
+    @patch("users_data_utils.UsersDataExtractor.parse_xml")
     def test_extract_data_xml(self, mock_parse_xml_function):
         # Test case: extract data when file with xml extension
         file_handler_xml = UsersDataExtractor("./data/test_data.xml")
@@ -86,5 +85,5 @@ class TestUsersDataExtractor(unittest.TestCase):
         self.assertIs(result, None)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -10,13 +10,13 @@ def process_users_data():
 
 
 files_path = [
-    os.path.join(os.path.dirname(__file__), *path.split('/'))
+    os.path.join(os.path.dirname(__file__), *path.split("/"))
     for path in [
         "data/a/b/users_1.xml",
         "data/users_2.xml",
         "data/a/b/users_1.csv",
         "data/a/c/users_2.csv",
-        "data/a/users.json"
+        "data/a/users.json",
     ]
 ]
 

@@ -6,7 +6,7 @@ import os
 
 
 class Actions:
-    DB_PATH = './users_db.db'
+    DB_PATH = "./users_db.db"
 
     def __init__(self, login, password):
         self.login = login
@@ -21,11 +21,11 @@ class Actions:
         try:
             user = final_users_data[
                 (
-                        (final_users_data["email"] == self.login)
-                        | (final_users_data["telephone_number"] == self.login)
+                    (final_users_data["email"] == self.login)
+                    | (final_users_data["telephone_number"] == self.login)
                 )
                 & (final_users_data["password"] == self.password)
-                ].to_dict(orient="records")[0]
+            ].to_dict(orient="records")[0]
         except IndexError:
             self.authenticated_user = False
         else:
@@ -81,7 +81,8 @@ class Actions:
                 "JOIN users_data ud "
                 "ON uc.parent_id = ud.user_id "
                 "WHERE ud.email = ? OR ud.telephone_number = ?;",
-                (self.login, self.login)).fetchall()
+                (self.login, self.login),
+            ).fetchall()
         except sqlite3.Error as e:
             print("Error while processing db", e)
         else:
@@ -100,11 +101,15 @@ class Actions:
             self.find_similar_children_by_age_from_db()
         else:
             try:
-                ages_of_users_children = [child["age"] for child in self.user_data["children"]]
+                ages_of_users_children = [
+                    child["age"] for child in self.user_data["children"]
+                ]
             except TypeError:
                 print(f"User with login: {self.login} has no children.")
             else:
-                users_with_children = final_users_data[final_users_data["children"].notna()]
+                users_with_children = final_users_data[
+                    final_users_data["children"].notna()
+                ]
                 users_with_children_of_similar_age = users_with_children[
                     users_with_children["children"].apply(
                         lambda x: (
@@ -116,14 +121,25 @@ class Actions:
                         )
                     )
                 ]
-                similar_users = users_with_children_of_similar_age.to_dict(orient="records")
+                similar_users = users_with_children_of_similar_age.to_dict(
+                    orient="records"
+                )
                 for user in similar_users:
-                    if user["telephone_number"] == self.login or user["email"] == self.login:
+                    if (
+                        user["telephone_number"] == self.login
+                        or user["email"] == self.login
+                    ):
                         continue
-                    children_sorted_by_name = sorted(user["children"], key=lambda x: x["name"])
-                    all_children_info = '; '.join(
-                        f"{child['name']}, {child['age']}" for child in children_sorted_by_name)
-                    print(f"{user['firstname']}, {user['telephone_number']}: {all_children_info}")
+                    children_sorted_by_name = sorted(
+                        user["children"], key=lambda x: x["name"]
+                    )
+                    all_children_info = "; ".join(
+                        f"{child['name']}, {child['age']}"
+                        for child in children_sorted_by_name
+                    )
+                    print(
+                        f"{user['firstname']}, {user['telephone_number']}: {all_children_info}"
+                    )
 
     @authentication_required
     def find_similar_children_by_age_from_db(self):
@@ -132,32 +148,42 @@ class Actions:
         try:
             result_user_children = cursor.execute(
                 """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
-                (self.login, self.login)).fetchall()
+                (self.login, self.login),
+            ).fetchall()
         except sqlite3.Error as e:
             print("Error while processing db", e)
         else:
             ages_of_users_children = [child[0] for child in result_user_children]
-            placeholders = ','.join('?' * len(ages_of_users_children))
+            placeholders = ",".join("?" * len(ages_of_users_children))
             try:
                 users_with_similar_children_age = cursor.execute(
                     """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
-                        placeholders),
-                    ages_of_users_children).fetchall()
+                        placeholders
+                    ),
+                    ages_of_users_children,
+                ).fetchall()
             except sqlite3.Error as e:
                 print("Error while processing db", e)
             else:
-                users_with_similar_children_age_list = [user[0] for user in users_with_similar_children_age]
+                users_with_similar_children_age_list = [
+                    user[0] for user in users_with_similar_children_age
+                ]
                 try:
                     for user_id in users_with_similar_children_age_list:
                         result = cursor.execute(
                             """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""",
-                            (user_id,)).fetchall()
+                            (user_id,),
+                        ).fetchall()
                         sorted_by_children_name = sorted(result, key=lambda x: x[3])
                         parent_name = sorted_by_children_name[0][0]
                         parent_telephone = sorted_by_children_name[0][2]
-                        children_formatted = '; '.join(
-                            f"{child[3]}, {child[4]}" for child in sorted_by_children_name)
-                        print(f"{parent_name}, {parent_telephone}: {children_formatted}")
+                        children_formatted = "; ".join(
+                            f"{child[3]}, {child[4]}"
+                            for child in sorted_by_children_name
+                        )
+                        print(
+                            f"{parent_name}, {parent_telephone}: {children_formatted}"
+                        )
                 except sqlite3.Error as e:
                     print("Error while processing db", e)
                 finally:
@@ -176,7 +202,9 @@ class Actions:
             db_conn = sqlite3.connect(Actions.DB_PATH)
             cursor = db_conn.cursor()
             try:
-                result = cursor.execute("""SELECT COUNT(*) FROM users_data;""").fetchone()[0]
+                result = cursor.execute(
+                    """SELECT COUNT(*) FROM users_data;"""
+                ).fetchone()[0]
                 print(int(result))
             except sqlite3.Error as e:
                 print("Error while processing db", e)
@@ -205,7 +233,8 @@ class Actions:
             cursor = db_conn.cursor()
             try:
                 firstname, email, created_at = cursor.execute(
-                    """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;""").fetchone()
+                    """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;"""
+                ).fetchone()
                 print(
                     f"name: {firstname}\n"
                     f"email_address: {email}\n"
@@ -225,8 +254,12 @@ class Actions:
             verified_children_data = [
                 child for child in children_data if child is not None
             ]
-            ages_of_all_children = [child["age"] for user in verified_children_data for child in user if
-                                    isinstance(child["age"], int)]
+            ages_of_all_children = [
+                child["age"]
+                for user in verified_children_data
+                for child in user
+                if isinstance(child["age"], int)
+            ]
 
             sorted_age_of_children = sorted(ages_of_all_children)
             grouped_age_of_children = sorted(
@@ -245,11 +278,15 @@ class Actions:
             db_conn = sqlite3.connect(Actions.DB_PATH)
             cursor = db_conn.cursor()
             try:
-                result_ages_of_all_children = cursor.execute("""SELECT child_age from users_children""").fetchall()
+                result_ages_of_all_children = cursor.execute(
+                    """SELECT child_age from users_children"""
+                ).fetchall()
             except sqlite3.Error as e:
                 print("Error while processing db", e)
             else:
-                ages_of_all_children = [child[0] for child in result_ages_of_all_children]
+                ages_of_all_children = [
+                    child[0] for child in result_ages_of_all_children
+                ]
                 sorted_age_of_children = sorted(ages_of_all_children)
                 grouped_age_of_children = sorted(
                     [
@@ -287,14 +324,21 @@ class Actions:
             for index, row in users_data.iterrows():
                 cursor.execute(
                     "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-                    (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
-                     row['created_at']))
+                    (
+                        row["email"],
+                        row["firstname"],
+                        row["telephone_number"],
+                        row["password"],
+                        row["role"],
+                        row["created_at"],
+                    ),
+                )
                 user_id = cursor.lastrowid
                 if row["children"] is not None:
                     for child in row["children"]:
                         cursor.execute(
                             "INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)",
-                            (user_id, child['name'], child['age'])
+                            (user_id, child["name"], child["age"]),
                         )
                 db_conn.commit()
         except sqlite3.Error as e:
@@ -305,7 +349,8 @@ class Actions:
 
     @staticmethod
     def create_starting_db_tables(cursor):
-        cursor.execute("""CREATE TABLE IF NOT EXISTS users_data (
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS users_data (
             user_id INTEGER PRIMARY KEY,
             email TEXT NOT NULL,
             firstname TEXT NOT NULL,
@@ -314,7 +359,8 @@ class Actions:
             role TEXT NOT NULL,
             created_at TEXT NOT NULL,
             UNIQUE (email, telephone_number)
-        );""")
+        );"""
+        )
 
         cursor.execute(
             """CREATE TABLE IF NOT EXISTS users_children (
@@ -324,4 +370,5 @@ class Actions:
             FOREIGN KEY (parent_id)
                 REFERENCES users_data(user_id)
                 ON DELETE CASCADE
-        );""")
+        );"""
+        )

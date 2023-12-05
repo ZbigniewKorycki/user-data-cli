@@ -10,10 +10,8 @@ def process_test_users_data():
 
 
 test_files_path = [
-    os.path.join(os.path.dirname(__file__), *path.split('/'))
-    for path in [
-        "final_test_data.csv"
-    ]
+    os.path.join(os.path.dirname(__file__), *path.split("/"))
+    for path in ["final_test_data.csv"]
 ]
 test_final_users_data = process_test_users_data()
 
