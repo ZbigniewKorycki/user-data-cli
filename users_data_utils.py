@@ -53,6 +53,9 @@ class UsersDataFormatter:
     TELEPHONE_FORMATTING_PATTERN = r"\s|\+48|\(48\)|^00"
     EMAIL_VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
 
+    def __init__(self, data_to_format):
+        self.data = data_to_format
+
     @staticmethod
     def filter_valid_data(data: Optional[List[dict]]) -> Optional[List[dict]]:
         return [user for user in data if user is not None]
@@ -120,71 +123,27 @@ class UsersDataFormatter:
         user["children"] = cls.convert_children_age_to_int(user["children"])
         return user
 
-    @classmethod
-    def process_data(cls, data: List[dict]) -> Optional[List[dict]]:
+    def process_data(self) -> Optional[List[dict]]:
         try:
-            formatted_data = [cls.format_user_data(user) for user in data]
-            validated_data = cls.filter_valid_data(formatted_data)
+            formatted_data = [self.format_user_data(user) for user in self.data]
+            validated_data = self.filter_valid_data(formatted_data)
         except Exception as e:
             print(f"Encounter error processing data: {e}")
             return None
         return validated_data
 
 
-class UsersDataProcessor:
-    def __init__(self, path_to_file: str):
-        self.data_extractor = UsersDataExtractor(path_to_file)
-        self.data_formatter = UsersDataFormatter()
-
-    def process_users_data(self) -> Optional[List[dict]]:
-        try:
-            data = self.data_extractor.extract_data()
-        except TypeError:
-            print(
-                f"Encounter error extracting data from path:{self.data_extractor.path_to_file}, check if file is correct.")
-            return None
-        else:
-            try:
-                formatted_data = self.data_formatter.process_data(data)
-            except TypeError:
-                print(
-                    f"Encounter error processing data from path: {self.data_extractor.path_to_file}, check if file is correct.")
-                return None
-            else:
-                return formatted_data
-
-
 class UsersDataMerger:
 
-    def __init__(self, files_paths: List[str]):
-        self.files_paths = files_paths
-        self.df_merged_users_data = None
-
-    def files_exist(self) -> bool:
-        return bool(self.files_paths)
-
-    def merge_users_data(self) -> List[dict]:
-        merged_data = []
-        for file_path in self.files_paths:
-            try:
-                users_data = UsersDataProcessor(file_path)
-                processed_data = users_data.process_users_data()
-                if processed_data:
-                    merged_data.extend(processed_data)
-            except Exception as e:
-                print(f"Encounter error processing file {file_path}: {e}")
-        return merged_data
-
-    def create_dataframe_from_merged_data(self):
-        return pd.DataFrame(self.merge_users_data())
-
-    def process_merged_users_data(self):
+    @staticmethod
+    def process_merged_users_data(merged_data):
+        df_data = None
         try:
-            if self.files_exist():
-                self.df_merged_users_data = self.create_dataframe_from_merged_data()
-                if not self.df_merged_users_data.empty:
-                    self.df_merged_users_data = self.df_merged_users_data.sort_values(by="created_at", ascending=False)
-                    self.df_merged_users_data.drop_duplicates(subset=["telephone_number"], keep='first', inplace=True)
-                    self.df_merged_users_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
+            df_data = pd.DataFrame(merged_data)
+            if not df_data.empty:
+                df_data = df_data.sort_values(by="created_at", ascending=False)
+                df_data.drop_duplicates(subset=["telephone_number"], keep='first', inplace=True)
+                df_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
         except Exception as e:
             print(f"Error processing merged data: {e}")
+        return df_data

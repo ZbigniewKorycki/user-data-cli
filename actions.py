@@ -1,11 +1,11 @@
-from process_users_data import process_users_data, files
+from users_data_processor import process_users_data
 import itertools
 from db_connection import SQLiteConnection
 import os.path
 
 
 class Actions:
-    users_data = process_users_data(files)
+    users_data = process_users_data()
 
     def __init__(self, login, password):
         self.login = login
