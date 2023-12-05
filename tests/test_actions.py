@@ -110,6 +110,7 @@ class TestActions(unittest.TestCase):
         action.print_user_children()
         mock_print.assert_called_with("User with login: 666666666 has no children.")
 
+
     @patch('builtins.print')
     def test_print_children_one_child(self, mock_print):
         # Test case, base user one child: Adam (1)
@@ -128,6 +129,24 @@ class TestActions(unittest.TestCase):
             call("Robert, 14")
         ]
         mock_print.assert_has_calls(expected_calls)
+        total_calls = mock_print.call_count
+        self.assertEqual(total_calls, 3)
+
+    @patch('builtins.print')
+    def test_find_similar_children_by_age(self, mock_print):
+        # Test case: base user three children: Robert (14),Alex (6),Harry (9)
+        action = Actions(login='888888888', password='dQbafj:B:&')
+        action.find_users_with_similar_children_by_age()
+        expected_calls = [
+            call("Test5, 555555555: Hellen, 1; Peter, 6"),
+            call("Test7, 777777777: John, 6; Marie, 1"),
+            call("Test9, 999999999: Nicolas, 9"),
+            call("Test10, 123123123: Adam, 14; Victoria, 9")
+        ]
+        mock_print.assert_has_calls(expected_calls, any_order=True)
+        total_calls = mock_print.call_count
+        self.assertEqual(total_calls, 4)
+
 
 
 if __name__ == "__main__":
