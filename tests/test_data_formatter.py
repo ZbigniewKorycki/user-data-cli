@@ -207,3 +207,7 @@ class TestUsersDataFormatter(unittest.TestCase):
                                    "children": "Michael (12),Theresa (6),Judith (1)"}
         result_test_user_invalid_email = UsersDataFormatter.format_user_data(test_user_invalid_email)
         self.assertIs(None, result_test_user_invalid_email)
+
+
+if __name__ == "__main__":
+    unittest.main()

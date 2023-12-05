@@ -1,1 +1,38 @@
-<users><user><firstname>Test</firstname><telephone_number>+48123494443</telephone_number><email>test@gmail.com</email><password>asdfaw4roj</password><role>admin</role><created_at>2023-05-15 21:57:02</created_at><children><child><name>Adam</name><age>11</age></child><child><name>Christie</name><age>17</age></child></children></user><user><firstname>Test1</firstname><telephone_number>+48123123123</telephone_number><email>test@example.net</email><password>faskfj43</password><role>admin</role><created_at>2023-11-13 01:28:53</created_at><children><child><name>Peter</name><age>3</age></child><child><name>Michael</name><age>13</age></child></children></user></users>
+<users>
+    <user>
+        <firstname>Test</firstname>
+        <telephone_number>+48123494443</telephone_number>
+        <email>test@gmail.com</email>
+        <password>asdfaw4roj</password>
+        <role>admin</role>
+        <created_at>2023-05-15 21:57:02</created_at>
+        <children>
+            <child>
+                <name>Adam</name>
+                <age>11</age>
+            </child>
+            <child>
+                <name>Christie</name>
+                <age>17</age>
+            </child>
+        </children>
+    </user>
+    <user>
+        <firstname>Test1</firstname>
+        <telephone_number>+48123123123</telephone_number>
+        <email>test@example.net</email>
+        <password>faskfj43</password>
+        <role>admin</role>
+        <created_at>2023-11-13 01:28:53</created_at>
+        <children>
+            <child>
+                <name>Peter</name>
+                <age>3</age>
+            </child>
+            <child>
+                <name>Michael</name>
+                <age>13</age>
+            </child>
+        </children>
+    </user>
+</users>

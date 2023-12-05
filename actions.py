@@ -1,11 +1,10 @@
-from users_data_processor import process_users_data
+from users_data_processor import final_users_data
 import itertools
 from db_connection import SQLiteConnection
 import os.path
 
 
 class Actions:
-    users_data = process_users_data()
 
     def __init__(self, login, password):
         self.login = login
@@ -17,12 +16,12 @@ class Actions:
 
     def authenticate_user(self):
         try:
-            user = Actions.users_data[
+            user = final_users_data[
                 (
-                        (Actions.users_data["email"] == self.login)
-                        | (Actions.users_data["telephone_number"] == self.login)
+                        (final_users_data["email"] == self.login)
+                        | (final_users_data["telephone_number"] == self.login)
                 )
-                & (Actions.users_data["password"] == self.password)
+                & (final_users_data["password"] == self.password)
                 ].to_dict(orient="records")[0]
         except IndexError:
             self.authenticated_user = False
@@ -98,7 +97,7 @@ class Actions:
             except TypeError:
                 print(f"User with login: {self.login} has no children. Can not find any matches.")
             else:
-                users_with_children = Actions.users_data[Actions.users_data["children"].notna()]
+                users_with_children = final_users_data[final_users_data["children"].notna()]
                 users_with_similar_children_age = users_with_children[
                     users_with_children["children"].apply(
                         lambda x: (
@@ -125,7 +124,7 @@ class Actions:
             result = db_conn.execute_query("""SELECT COUNT(*) FROM users_data;""", fetch_option="fetchone")[0]
             print(result)
         else:
-            print(len(Actions.users_data))
+            print(len(final_users_data))
 
     @admin_required
     def print_oldest_account(self):
@@ -140,7 +139,7 @@ class Actions:
                 f"created_at: {created_at}"
             )
         else:
-            oldest_account = Actions.users_data.sort_values(by="created_at").to_dict(
+            oldest_account = final_users_data.sort_values(by="created_at").to_dict(
                 orient="records"
             )[0]
             if oldest_account is not None:
@@ -157,7 +156,7 @@ class Actions:
             result = db_conn.execute_query("""SELECT child_age from users_children""", fetch_option="fetchall")
             children_ages = [child[0] for child in result]
         else:
-            children_data = Actions.users_data["children"].to_list()
+            children_data = final_users_data["children"].to_list()
             filtered_children_without_none = [
                 child for child in children_data if child is not None
             ]
@@ -190,7 +189,7 @@ class Actions:
                 print("Error while creating db tables.")
             else:
                 try:
-                    for index, row in Actions.users_data.iterrows():
+                    for index, row in final_users_data.iterrows():
                         db_conn.execute_query(
                             "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                             (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
