@@ -122,7 +122,7 @@ class Actions:
         if os.path.exists("./users_db.db"):
             db_conn = SQLiteConnection()
             result = db_conn.execute_query("""SELECT COUNT(*) FROM users_data;""", fetch_option="fetchone")[0]
-            print(result)
+            print(int(result))
         else:
             print(len(final_users_data))
 
