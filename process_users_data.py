@@ -1,9 +1,10 @@
-from user_data_manager import UsersDataMerger
+from users_data_utils import UsersDataMerger
 
 
 def process_users_data(files_paths):
     users_data_merger = UsersDataMerger(files_paths)
-    return users_data_merger.get_merged_data_without_duplicates()
+    users_data_merger.process_merged_users_data()
+    return users_data_merger.df_merged_users_data
 
 
 files = [

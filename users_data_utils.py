@@ -150,31 +150,37 @@ class UsersDataHandler:
 
 class UsersDataMerger:
 
-    def __init__(self, files_list: list):
-        self.files_list = files_list
-        self.merged_data = self.merge_users_data_from_multiple_files()
+    def __init__(self, files_paths: List[str]):
+        self.files_paths = files_paths
+        self.df_merged_users_data = None
 
-    def merge_users_data_from_multiple_files(self) -> List[dict]:
+    def files_exist(self) -> bool:
+        return bool(self.files_paths)
+
+    def merge_users_data(self) -> List[dict]:
         merged_data = []
-        for file in self.files_list:
-            user = UsersDataHandler(file)
-            if user.process_users_data() is not None:
-                merged_data.extend(user.process_users_data())
+        for file_path in self.files_paths:
+            try:
+                users_data = UsersDataHandler(file_path)
+                processed_data = users_data.process_users_data()
+                if processed_data:
+                    merged_data.extend(processed_data)
+            except Exception as e:
+                print(f"Encounter error processing file {file_path}: {e}")
         return merged_data
 
-    def drop_duplicated_users_based_on_email(self):
-        df = pd.DataFrame(self.merged_data)
-        df = df.sort_values(by="created_at", ascending=False)
-        df_without_duplicated_email = df.drop_duplicates(subset=["email"], keep='first')
-        self.merged_data = df_without_duplicated_email
+    def create_dataframe_from_merged_data(self):
+        return pd.DataFrame(self.merge_users_data())
 
-    def drop_duplicated_users_based_on_telephone_number(self):
-        df = pd.DataFrame(self.merged_data)
-        df = df.sort_values(by="created_at", ascending=False)
-        df_without_duplicated_telephone_number = df.drop_duplicates(subset=["telephone_number"], keep='first')
-        self.merged_data = df_without_duplicated_telephone_number
+    def process_merged_users_data(self):
+        try:
+            if self.files_exist():
+                self.df_merged_users_data = self.create_dataframe_from_merged_data()
+                if not self.df_merged_users_data.empty:
+                    self.df_merged_users_data = self.df_merged_users_data.sort_values(by="created_at", ascending=False)
+                    self.df_merged_users_data.drop_duplicates(subset=["telephone_number"], keep='first', inplace=True)
+                    self.df_merged_users_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
+        except Exception as e:
+            print(f"Error processing merged data: {e}")
 
-    def get_merged_data_without_duplicates(self):
-        self.drop_duplicated_users_based_on_telephone_number()
-        self.drop_duplicated_users_based_on_email()
-        return self.merged_data
+

@@ -1,5 +1,5 @@
 import unittest
-from user_data_manager import UsersDataProcessor
+from users_data_utils import UsersDataProcessor
 
 
 class TestUsersDataProcessor(unittest.TestCase):

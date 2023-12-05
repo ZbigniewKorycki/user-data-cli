@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from user_data_manager import UsersFileHandler
+from users_data_utils import UsersFileHandler
 
 
 class TestUsersFileHandler(unittest.TestCase):
