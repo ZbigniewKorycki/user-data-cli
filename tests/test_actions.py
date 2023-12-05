@@ -1,7 +1,7 @@
 import unittest
 from actions import Actions
 from data.users_test_data_processor import test_final_users_data
-from unittest.mock import patch
+from unittest.mock import patch, call
 
 
 @patch('actions.final_users_data', test_final_users_data)
@@ -47,18 +47,61 @@ class TestActions(unittest.TestCase):
         self.assertEqual(action_admin_by_email.password, '7GRMc-fg42')
 
     @patch('builtins.print')
-    def test_print_all_accounts_base_user_tel(self, mock_print):
+    def test_print_all_accounts_base_user(self, mock_print):
         # Test case: Base user, login with tel
-        action_unauthorized_by_base = Actions(login='111111111', password='Wm&fkw9bI8')
-        action_unauthorized_by_base.print_all_accounts()
+        action_unauthorized = Actions(login='111111111', password='Wm&fkw9bI8')
+        action_unauthorized.print_all_accounts()
         mock_print.assert_called_with("Invalid Login")
 
     @patch('builtins.print')
-    def test_print_all_accounts_admin_tel(self, mock_print):
-        # Test case: Admin, login with tel
+    def test_print_all_accounts_admin(self, mock_print):
+        # Test case: Admin
         action_admin = Actions(login='222222222', password='7GRMc-fg42')
         action_admin.print_all_accounts()
         mock_print.assert_called_with(10)
+
+    @patch('builtins.print')
+    def test_print_all_accounts_unauthenticated_user(self, mock_print):
+        # Test case: unauthenticated user
+        action_unauthorized = Actions(login='111111112', password='Wm&fkw9bI8')
+        action_unauthorized.print_all_accounts()
+        mock_print.assert_called_with("Invalid Login")
+
+    @patch('builtins.print')
+    def test_print_oldest_account_base_user(self, mock_print):
+        # Test case: Base user
+        action_unauthorized = Actions(login='111111111', password='Wm&fkw9bI8')
+        action_unauthorized.print_oldest_account()
+        mock_print.assert_called_with("Invalid Login")
+
+    @patch('builtins.print')
+    def test_print_oldest_account_admin(self, mock_print):
+        # Test case: Admin, should return output base on user with data:
+        # Test1;111111111;test1@example.com;Wm&fkw9bI8;user;2010-01-21 21:21:01;Adam (1)
+        action_admin = Actions(login='222222222', password='7GRMc-fg42')
+        action_admin.print_oldest_account()
+        mock_print.assert_called_with("name: Test1\nemail_address: test1@example.com\ncreated_at: 2010-01-21 21:21:01")
+
+    @patch('builtins.print')
+    def test_group_by_age_base_user(self, mock_print):
+        # Test case: Base user
+        action_unauthorized = Actions(login='111111111', password='Wm&fkw9bI8')
+        action_unauthorized.group_children_by_age()
+        mock_print.assert_called_with("Invalid Login")
+
+    @patch('builtins.print')
+    def test_group_by_age_admin(self, mock_print):
+        # Test case: Admin
+        action_admin = Actions(login='222222222', password='7GRMc-fg42')
+        action_admin.group_children_by_age()
+        expected_calls = [
+            call("age: 3, count: 2"),
+            call("age: 14, count: 2"),
+            call("age: 6, count: 3"),
+            call("age: 9, count: 3"),
+            call("age: 1, count: 4"),
+        ]
+        mock_print.assert_has_calls(expected_calls)
 
 
 if __name__ == "__main__":
