@@ -1,0 +1,11 @@
+firstname;telephone_number;email;password;role;created_at;children
+Test1;111111111;test1@example.com;Wm&fkw9bI8;user;2010-01-21 21:21:01;Adam (1)
+Test2;222222222;test2@example.com;7GRMc-fg42;admin;2011-03-18 05:21:11;
+Test3;333333333;test3@example.com;password123;admin;2012-01-21 21:21:01;Bob (3)
+Test4;444444444;test4@example.com;`Y/MT_k@BL;user;2013-02-21 11:21:01;Frank (3),Kate (1)
+Test5;555555555;test5@example.com;b}&Z>>I+iC;admin;2014-03-21 01:21:01;Peter (6),Hellen (1)
+Test6;666666666;test6@example.com;GcUF~F(<Xx;user;2015-04-21 22:21:01;
+Test7;777777777;test7@example.com;O*PlE8J<Bs;admin;2016-05-21 13:21:01;Marie (1),John (6)
+Test8;888888888;test8@example.com;dQbafj:B:&;user;2020-06-21 01:21:01;Robert (14),Alex (6),Harry (9)
+Test9;999999999;test9@example.com;0Nu:}XUIwI;user;2021-07-21 21:21:01;Nicolas (9)
+Test10;000000000;test10@example.com;u)89o55fF/2;user;2022-09-21 21:21:01;Adam (14), Victoria (9)

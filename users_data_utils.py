@@ -100,7 +100,8 @@ class UsersDataFormatter:
                 "name": child.split("(")[0].strip(),
                 "age": child.split("(")[1].replace(")", "").strip(),
             }
-            for child in children]
+            for child in children if child != '']
+
 
     @staticmethod
     def convert_children_age_to_int(children_data: List[dict]) -> Optional[List[dict]]:
@@ -118,6 +119,7 @@ class UsersDataFormatter:
                 "telephone_number", user
         ) or not cls.is_email_address_valid(user.get("email")):
             return None
+        print(user)
         user["telephone_number"] = cls.format_telephone_number(user["telephone_number"])
         user["children"] = cls.get_info_on_user_children(user)
         user["children"] = cls.convert_children_age_to_int(user["children"])
@@ -125,8 +127,8 @@ class UsersDataFormatter:
 
     def process_data(self) -> Optional[List[dict]]:
         try:
-            formatted_data = [self.format_user_data(user) for user in self.data]
-            validated_data = self.filter_valid_data(formatted_data)
+            formatted_data = [UsersDataFormatter.format_user_data(user) for user in self.data]
+            validated_data = UsersDataFormatter.filter_valid_data(formatted_data)
         except Exception as e:
             print(f"Encounter error processing data: {e}")
             return None

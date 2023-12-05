@@ -12,10 +12,9 @@ def process_test_users_data():
 test_files_path = [
     os.path.join(os.path.dirname(__file__), *path.split('/'))
     for path in [
-        "test_data.xml",
-        "test_data.csv",
-        "test_data.json"
+        "final_test_data.csv"
     ]
 ]
-
 test_final_users_data = process_test_users_data()
+
+print(test_final_users_data)
