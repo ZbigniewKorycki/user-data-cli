@@ -58,32 +58,36 @@ class Actions:
         return True if os.path.exists(db_path) else False
 
     @authentication_required
-    def print_user_children(self):
+    def print_children(self):
         if self.db_available:
-            self.print_user_children_from_db()
+            self.print_children_from_db()
         else:
-            children = self.user_data["children"]
-            if children:
-                children.sort(key=lambda x: x["name"])
-                for child in children:
+            user_children = self.user_data["children"]
+            if user_children:
+                user_children.sort(key=lambda x: x["name"])
+                for child in user_children:
                     print(f"{child['name']}, {child['age']}")
             else:
                 print(f"User with login: {self.login} has no children.")
 
     @authentication_required
-    def print_user_children_from_db(self):
+    def print_children_from_db(self):
         db_conn = sqlite3.connect(Actions.DB_PATH)
         cursor = db_conn.cursor()
         try:
-            children = cursor.execute(
-                "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
+            user_children = cursor.execute(
+                "SELECT uc.child_name, uc.child_age"
+                "FROM users_children uc"
+                "JOIN users_data ud "
+                "ON uc.parent_id = ud.user_id "
+                "WHERE ud.email = ? OR ud.telephone_number = ?;",
                 (self.login, self.login)).fetchall()
         except sqlite3.Error as e:
             print("Error while processing db", e)
         else:
-            if children:
-                children.sort(key=lambda x: x[0])
-                for child in children:
+            if user_children:
+                user_children.sort(key=lambda x: x[0])
+                for child in user_children:
                     print(f"{child[0]}, {child[1]}")
             else:
                 print(f"User with login: {self.login} has no children.")
@@ -96,29 +100,30 @@ class Actions:
             self.find_similar_children_by_age_from_db()
         else:
             try:
-                user_children_age = [child["age"] for child in self.user_data["children"]]
+                ages_of_users_children = [child["age"] for child in self.user_data["children"]]
             except TypeError:
-                print(f"User with login: {self.login} has no children. Can not find any matches.")
+                print(f"User with login: {self.login} has no children.")
             else:
                 users_with_children = final_users_data[final_users_data["children"].notna()]
-                users_with_similar_children_age = users_with_children[
+                users_with_children_of_similar_age = users_with_children[
                     users_with_children["children"].apply(
                         lambda x: (
                             any(
-                                child["age"] in user_children_age
+                                child["age"] in ages_of_users_children
                                 for child in x
                                 if isinstance(child, dict)
                             )
                         )
                     )
                 ]
-                similar_users = users_with_similar_children_age.to_dict(orient="records")
+                similar_users = users_with_children_of_similar_age.to_dict(orient="records")
                 for user in similar_users:
                     if user["telephone_number"] == self.login or user["email"] == self.login:
                         continue
-                    children_sorted = sorted(user["children"], key=lambda x: x["name"])
-                    children_formatted = '; '.join(f"{child['name']}, {child['age']}" for child in children_sorted)
-                    print(f"{user['firstname']}, {user['telephone_number']}: {children_formatted}")
+                    children_sorted_by_name = sorted(user["children"], key=lambda x: x["name"])
+                    all_children_info = '; '.join(
+                        f"{child['name']}, {child['age']}" for child in children_sorted_by_name)
+                    print(f"{user['firstname']}, {user['telephone_number']}: {all_children_info}")
 
     @authentication_required
     def find_similar_children_by_age_from_db(self):
@@ -131,13 +136,13 @@ class Actions:
         except sqlite3.Error as e:
             print("Error while processing db", e)
         else:
-            user_children_ages = [child[0] for child in result_user_children]
-            placeholders = ','.join('?' * len(user_children_ages))
+            ages_of_users_children = [child[0] for child in result_user_children]
+            placeholders = ','.join('?' * len(ages_of_users_children))
             try:
                 users_with_similar_children_age = cursor.execute(
                     """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
                         placeholders),
-                    user_children_ages).fetchall()
+                    ages_of_users_children).fetchall()
             except sqlite3.Error as e:
                 print("Error while processing db", e)
             else:
@@ -161,7 +166,7 @@ class Actions:
     @admin_required
     def print_all_accounts(self):
         if self.db_available:
-            self.print_user_children_from_db()
+            self.print_all_accounts_from_db()
         else:
             print(len(final_users_data))
 
@@ -217,24 +222,21 @@ class Actions:
             self.group_children_by_age_from_db()
         else:
             children_data = final_users_data["children"].to_list()
-            filtered_children_without_none = [
+            verified_children_data = [
                 child for child in children_data if child is not None
             ]
-            children_ages = []
-            for user_children in filtered_children_without_none:
-                for child in user_children:
-                    if isinstance(child["age"], int):
-                        children_ages.append(child["age"])
+            ages_of_all_children = [child["age"] for user in verified_children_data for child in user if
+                                    isinstance(child["age"], int)]
 
-            sorted_children_ages = sorted(children_ages)
-            grouped_children_ages = sorted(
+            sorted_age_of_children = sorted(ages_of_all_children)
+            grouped_age_of_children = sorted(
                 [
                     {"age": key, "count": len(list(group))}
-                    for key, group in itertools.groupby(sorted_children_ages)
+                    for key, group in itertools.groupby(sorted_age_of_children)
                 ],
                 key=lambda x: x["count"],
             )
-            for child_age in grouped_children_ages:
+            for child_age in grouped_age_of_children:
                 print(f"age: {child_age['age']}, count: {child_age['count']}")
 
     @admin_required
@@ -243,20 +245,20 @@ class Actions:
             db_conn = sqlite3.connect(Actions.DB_PATH)
             cursor = db_conn.cursor()
             try:
-                result = cursor.execute("""SELECT child_age from users_children""").fetchall()
+                result_ages_of_all_children = cursor.execute("""SELECT child_age from users_children""").fetchall()
             except sqlite3.Error as e:
                 print("Error while processing db", e)
             else:
-                children_ages = [child[0] for child in result]
-                sorted_children_ages = sorted(children_ages)
-                grouped_children_ages = sorted(
+                ages_of_all_children = [child[0] for child in result_ages_of_all_children]
+                sorted_age_of_children = sorted(ages_of_all_children)
+                grouped_age_of_children = sorted(
                     [
                         {"age": key, "count": len(list(group))}
-                        for key, group in itertools.groupby(sorted_children_ages)
+                        for key, group in itertools.groupby(sorted_age_of_children)
                     ],
                     key=lambda x: x["count"],
                 )
-                for child_age in grouped_children_ages:
+                for child_age in grouped_age_of_children:
                     print(f"age: {child_age['age']}, count: {child_age['count']}")
             finally:
                 db_conn.close()

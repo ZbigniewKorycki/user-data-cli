@@ -108,21 +108,21 @@ class TestActions(unittest.TestCase):
     def test_print_children_no_children(self, mock_print):
         # Test case, base user no children
         action = Actions(login='666666666', password='GcUF~F(<Xx')
-        action.print_user_children()
+        action.print_children()
         mock_print.assert_called_with("User with login: 666666666 has no children.")
 
     @patch('builtins.print')
     def test_print_children_one_child(self, mock_print):
         # Test case, base user one child: Adam (1)
         action = Actions(login='111111111', password='Wm&fkw9bI8')
-        action.print_user_children()
+        action.print_children()
         mock_print.assert_called_with("Adam, 1")
 
     @patch('builtins.print')
     def test_print_children_three_children(self, mock_print):
         # Test case, base user three children: Robert (14),Alex (6),Harry (9)
         action = Actions(login='888888888', password='dQbafj:B:&')
-        action.print_user_children()
+        action.print_children()
         expected_calls = [
             call("Alex, 6"),
             call("Harry, 9"),
