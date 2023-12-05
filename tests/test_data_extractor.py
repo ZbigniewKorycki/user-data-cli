@@ -8,11 +8,10 @@ class TestUsersDataExtractor(unittest.TestCase):
     def test_extract_file_extension(self):
         # Test case: Valid file path with extension
         file_handler = UsersDataExtractor("/path/to/example.csv")
-        self.assertEqual("csv", file_handler.extract_file_extension())
-
+        self.assertEqual(file_handler.extract_file_extension(), "csv")
         # Test case: File path without extension
         file_handler_no_extension = UsersDataExtractor("/path/to/example")
-        self.assertIs(None, file_handler_no_extension.extract_file_extension())
+        self.assertIs(file_handler_no_extension.extract_file_extension(), None)
 
     def test_read_csv(self):
         # Test case: Read valid csv test file
@@ -84,7 +83,7 @@ class TestUsersDataExtractor(unittest.TestCase):
         # Test case: extract data when unrecognized file extension
         file_handler = UsersDataExtractor("./data/test_data.txt")
         result = file_handler.extract_data()
-        self.assertIs(None, result)
+        self.assertIs(result, None)
 
 
 if __name__ == '__main__':
