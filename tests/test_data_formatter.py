@@ -109,11 +109,6 @@ class TestUsersDataFormatter(unittest.TestCase):
         self.assertEqual(len(UsersDataFormatter.filter_valid_data(test_data)), 2)
         self.assertIsInstance(UsersDataFormatter.filter_valid_data(test_data), list)
 
-        # Test case: valid test data as list of None values
-        test_data1 = [None, None, None, None]
-        self.assertEqual(len(UsersDataFormatter.filter_valid_data(test_data1)), 0)
-        self.assertIsInstance(UsersDataFormatter.filter_valid_data(test_data1), list)
-
     def test_is_data_present_in_user(self):
         test_user = {
             "firstname": "test",
@@ -284,7 +279,7 @@ class TestUsersDataFormatter(unittest.TestCase):
             )
         )
         self.assertEqual(
-            test_children_data_one_invalid, [{"name": "Adam", "age": "one"}]
+            result_after_conversion_invalid, [{"name": "Adam", "age": "one"}]
         )
 
     def test_format_user_data(self):

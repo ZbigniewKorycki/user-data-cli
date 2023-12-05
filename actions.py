@@ -147,7 +147,11 @@ class Actions:
         cursor = db_conn.cursor()
         try:
             result_user_children = cursor.execute(
-                """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
+                """SELECT uc.child_age
+                FROM users_children uc
+                JOIN users_data ud
+                ON uc.parent_id = ud.user_id
+                WHERE ud.email = ? OR ud.telephone_number = ?;""",
                 (self.login, self.login),
             ).fetchall()
         except sqlite3.Error as e:
@@ -157,7 +161,9 @@ class Actions:
             placeholders = ",".join("?" * len(ages_of_users_children))
             try:
                 users_with_similar_children_age = cursor.execute(
-                    """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
+                    """SELECT DISTINCT parent_id
+                    FROM users_children
+                    WHERE child_age IN ({});""".format(
                         placeholders
                     ),
                     ages_of_users_children,
@@ -171,7 +177,11 @@ class Actions:
                 try:
                     for user_id in users_with_similar_children_age_list:
                         result = cursor.execute(
-                            """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""",
+                            """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age
+                            FROM users_children uc
+                            JOIN users_data ud
+                            ON uc.parent_id = ud.user_id
+                            WHERE ud.user_id = ?""",
                             (user_id,),
                         ).fetchall()
                         sorted_by_children_name = sorted(result, key=lambda x: x[3])
@@ -233,7 +243,10 @@ class Actions:
             cursor = db_conn.cursor()
             try:
                 firstname, email, created_at = cursor.execute(
-                    """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;"""
+                    """SELECT firstname, email, created_at
+                     FROM users_data
+                    ORDER BY created_at ASC
+                    LIMIT 1;"""
                 ).fetchone()
                 print(
                     f"name: {firstname}\n"
@@ -323,7 +336,9 @@ class Actions:
         try:
             for index, row in users_data.iterrows():
                 cursor.execute(
-                    "INSERT INTO users_data (email, firstname, telephone_number, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO users_data"
+                    "(email, firstname, telephone_number, password, role, created_at)"
+                    " VALUES (?, ?, ?, ?, ?, ?)",
                     (
                         row["email"],
                         row["firstname"],
@@ -337,7 +352,9 @@ class Actions:
                 if row["children"] is not None:
                     for child in row["children"]:
                         cursor.execute(
-                            "INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)",
+                            "INSERT INTO users_children"
+                            "(parent_id, child_name, child_age)"
+                            "VALUES (?, ?, ?)",
                             (user_id, child["name"], child["age"]),
                         )
                 db_conn.commit()

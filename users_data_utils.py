@@ -81,7 +81,7 @@ class UsersDataFormatter:
     def get_info_on_user_children(cls, user: dict) -> Optional[List[dict]]:
         if not cls.is_data_present_in_user("children", user):
             return None
-        children_data = user.get("children")
+        children_data = user.get("children", '')
         # Check if children from users data type xml
         if isinstance(children_data, dict):
             if isinstance(children_data.get("child"), dict):
@@ -94,15 +94,16 @@ class UsersDataFormatter:
         elif isinstance(children_data, list):
             return list(children_data)
         # Else children from users data type csv
-        children = [child.strip() for child in children_data.split(",")]
-        return [
-            {
-                "name": child.split("(")[0].strip(),
-                "age": child.split("(")[1].replace(")", "").strip(),
-            }
-            for child in children
-            if child != ""
-        ]
+        else:
+            children = [child.strip() for child in children_data.split(",")]
+            return [
+                {
+                    "name": child.split("(")[0].strip(),
+                    "age": child.split("(")[1].replace(")", "").strip(),
+                }
+                for child in children
+                if child != ""
+            ]
 
     @staticmethod
     def convert_children_age_to_int(children_data: List[dict]) -> Optional[List[dict]]:
