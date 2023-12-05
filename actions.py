@@ -198,11 +198,13 @@ class Actions:
                             (row['email'], row['firstname'], row['telephone_number'], row['password'], row['role'],
                              row['created_at'])
                         )
+                        user_id = db_conn.execute_query("SELECT user_id FROM users_data WHERE email = ?",
+                                                        (row['email'],), fetch_option="fetchone")[0]
                         if row["children"] is not None:
                             for child in row["children"]:
                                 db_conn.execute_query(
-                                    "INSERT INTO users_children (parent_email, child_name, child_age) VALUES (?, ?, ?)",
-                                    (row['email'], child['name'], child['age'])
+                                    "INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)",
+                                    (user_id, child['name'], child['age'])
                                 )
                 except Exception:
                     print("Error while filling in db tables.")
@@ -212,7 +214,8 @@ class Actions:
     @staticmethod
     def create_starting_db_tables(db_conn):
         db_conn.execute_query("""CREATE TABLE IF NOT EXISTS users_data (
-            email TEXT PRIMARY KEY,
+            user_id INTEGER PRIMARY KEY,
+            email TEXT NOT NULL,
             firstname TEXT NOT NULL,
             telephone_number TEXT NOT NULL,
             password TEXT NOT NULL,
@@ -223,10 +226,10 @@ class Actions:
 
         db_conn.execute_query(
             """CREATE TABLE IF NOT EXISTS users_children (
-            parent_email TEXT NOT NULL,
+            parent_id INTEGER NOT NULL,
             child_name TEXT NOT NULL,
             child_age INTEGER NOT NULL,
-            FOREIGN KEY (parent_email)
-                REFERENCES users_data(email)
+            FOREIGN KEY (parent_id)
+                REFERENCES users_data(user_id)
                 ON DELETE CASCADE
         );""")
