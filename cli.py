@@ -1,11 +1,11 @@
 from argparse import Namespace, ArgumentParser
 from actions import Actions
 import re
-from users_data_utils import UsersDataProcessor
+from users_data_utils import UsersDataFormatter
 
 parser = ArgumentParser()
 PHONE_VALIDATION_PATTERN = r"[\d]{9}"
-EMAIL_VALIDATION_PATTERN = UsersDataProcessor.EMAIL_VALIDATION_PATTERN
+EMAIL_VALIDATION_PATTERN = UsersDataFormatter.EMAIL_VALIDATION_PATTERN
 
 commands_list = [
     "print-all-accounts",

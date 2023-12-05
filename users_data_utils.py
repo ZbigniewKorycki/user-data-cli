@@ -7,7 +7,7 @@ import json
 import pandas as pd
 
 
-class UsersFileHandler:
+class UsersDataExtractor:
     def __init__(self, path_to_file):
         self.path_to_file = path_to_file
         self.file_extension = self.extract_file_extension()
@@ -49,7 +49,7 @@ class UsersFileHandler:
         return data
 
 
-class UsersDataProcessor:
+class UsersDataFormatter:
     TELEPHONE_FORMATTING_PATTERN = r"\s|\+48|\(48\)|^00"
     EMAIL_VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
 
@@ -121,31 +121,37 @@ class UsersDataProcessor:
         return user
 
     @classmethod
-    def process_data(cls, data: List[dict]) -> List[dict]:
-        formatted_data = [cls.format_user_data(user) for user in data]
-        validated_data = cls.filter_valid_data(formatted_data)
+    def process_data(cls, data: List[dict]) -> Optional[List[dict]]:
+        try:
+            formatted_data = [cls.format_user_data(user) for user in data]
+            validated_data = cls.filter_valid_data(formatted_data)
+        except Exception as e:
+            print(f"Encounter error processing data: {e}")
+            return None
         return validated_data
 
 
-class UsersDataHandler:
+class UsersDataProcessor:
     def __init__(self, path_to_file: str):
-        self.file_handler = UsersFileHandler(path_to_file)
-        self.data_processor = UsersDataProcessor()
+        self.data_extractor = UsersDataExtractor(path_to_file)
+        self.data_formatter = UsersDataFormatter()
 
     def process_users_data(self) -> Optional[List[dict]]:
         try:
-            data = self.file_handler.extract_data()
-        except TypeError as e:
-            print(e)
+            data = self.data_extractor.extract_data()
+        except TypeError:
+            print(
+                f"Encounter error extracting data from path:{self.data_extractor.path_to_file}, check if file is correct.")
             return None
         else:
             try:
-                processed_data = self.data_processor.process_data(data)
-            except TypeError as e:
-                print(e)
+                formatted_data = self.data_formatter.process_data(data)
+            except TypeError:
+                print(
+                    f"Encounter error processing data from path: {self.data_extractor.path_to_file}, check if file is correct.")
                 return None
             else:
-                return processed_data
+                return formatted_data
 
 
 class UsersDataMerger:
@@ -161,7 +167,7 @@ class UsersDataMerger:
         merged_data = []
         for file_path in self.files_paths:
             try:
-                users_data = UsersDataHandler(file_path)
+                users_data = UsersDataProcessor(file_path)
                 processed_data = users_data.process_users_data()
                 if processed_data:
                     merged_data.extend(processed_data)
@@ -182,5 +188,3 @@ class UsersDataMerger:
                     self.df_merged_users_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
         except Exception as e:
             print(f"Error processing merged data: {e}")
-
-
