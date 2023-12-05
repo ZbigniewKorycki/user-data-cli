@@ -2,13 +2,10 @@ from users_data_utils import UsersDataMerger, UsersDataExtractor, UsersDataForma
 
 
 def process_users_data():
-    merged_data = []
-    for path in files_path:
-        extracted_data = UsersDataExtractor(path).extract_data()
-        formatted_data = UsersDataFormatter(extracted_data).process_data()
-        if formatted_data:
-            merged_data.extend(formatted_data)
-    return UsersDataMerger.process_merged_users_data(merged_data)
+    merger = UsersDataMerger(files_path)
+    merged_data = merger.merge_data(UsersDataExtractor, UsersDataFormatter)
+    merger.process_merged_users_data(merged_data)
+    return merger.df_merged_users_data
 
 
 files_path = [

@@ -135,15 +135,25 @@ class UsersDataFormatter:
 
 class UsersDataMerger:
 
-    @staticmethod
-    def process_merged_users_data(merged_data):
-        df_data = None
+    def __init__(self, files_path):
+        self.files_path = files_path
+        self.df_merged_users_data = None
+
+    def merge_data(self, data_extractor, data_formatter):
+        merged_data = []
+        for path in self.files_path:
+            extracted_data = data_extractor(path).extract_data()
+            formatted_data = data_formatter(extracted_data).process_data()
+            if formatted_data:
+                merged_data.extend(formatted_data)
+        return merged_data
+
+    def process_merged_users_data(self, merged_data):
         try:
-            df_data = pd.DataFrame(merged_data)
-            if not df_data.empty:
-                df_data = df_data.sort_values(by="created_at", ascending=False)
-                df_data.drop_duplicates(subset=["telephone_number"], keep='first', inplace=True)
-                df_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
+            self.df_merged_users_data = pd.DataFrame(merged_data)
+            if not self.df_merged_users_data.empty:
+                self.df_merged_users_data = self.df_merged_users_data.sort_values(by="created_at", ascending=False)
+                self.df_merged_users_data.drop_duplicates(subset=["telephone_number"], keep='first', inplace=True)
+                self.df_merged_users_data.drop_duplicates(subset=["email"], keep='first', inplace=True)
         except Exception as e:
             print(f"Error processing merged data: {e}")
-        return df_data
