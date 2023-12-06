@@ -21,22 +21,18 @@ class Actions:
             self.authenticate_user_with_db()
         else:
             user = self.get_data_of_user()
-            if user is not None:
+            if user:
                 self.authenticated_user = True
-                self.role = self.get_data_of_user_role()
+                self.role = self.get_role_of_logged_user()
 
     def authenticate_user_with_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
-                cursor.execute(
-                    "SELECT role FROM users_data WHERE (email = ? OR telephone_number = ?) AND password = ?;",
-                    (self.login, self.login, self.password),
-                )
-                user_role = cursor.fetchone()
-                if user_role:
+                role = self.get_role_of_logged_user_db(cursor)
+                if role:
                     self.authenticated_user = True
-                    self.role = user_role[0]
+                    self.role = role
         except sqlite3.Error:
             print("Error while authenticating user.")
 
@@ -69,7 +65,7 @@ class Actions:
         if self.db_available:
             self.print_children_db()
         else:
-            user_children = self.get_data_of_user_children()
+            user_children = self.get_children_of_logged_user()
             if user_children:
                 user_children.sort(key=lambda x: x["name"])
                 for child in user_children:
@@ -82,19 +78,17 @@ class Actions:
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
-                cursor.execute(
-                    "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
-                    (self.login, self.login),
-                )
-                children_of_user = cursor.fetchall()
+                children_of_user = self.get_children_of_logged_user_db(cursor)
                 if children_of_user:
-                    children_of_user.sort(key=lambda x: x[0])
-                    for child_name, child_age in children_of_user:
-                        print(f"{child_name}, {child_age}")
+                    children_of_user.sort(key=lambda x: x["name"])
+                    for child in children_of_user:
+                        print(f"{child['name']}, {child['age']}")
                 else:
                     print(f"User with login: {self.login} has no children.")
         except sqlite3.Error:
             print("Error while getting user's children from database.")
+
+
 
     @authentication_required
     def find_similar_children_by_age(self):
@@ -102,12 +96,12 @@ class Actions:
             self.find_similar_children_by_age_db()
         else:
             try:
-                ages_of_users_children = [child["age"] for child in self.get_data_of_user_children()]
+                ages_of_logged_user_children = [child["age"] for child in self.get_children_of_logged_user()]
             except TypeError:
                 print(f"User with login: {self.login} has no children.")
             else:
                 users_with_children_of_similar_age = Actions.get_users_with_children_of_specific_age(
-                    ages_of_users_children)
+                    ages_of_logged_user_children)
                 try:
                     for user in users_with_children_of_similar_age:
                         if (
@@ -133,36 +127,38 @@ class Actions:
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
-                cursor.execute(
-                    """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
-                    (self.login, self.login),
-                )
-                result_user_children = cursor.fetchall()
-                ages_of_users_children = [child[0] for child in result_user_children]
-                placeholders = ",".join("?" * len(ages_of_users_children))
-                cursor.execute(
-                    """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
-                        placeholders
-                    ),
-                    ages_of_users_children,
-                )
-                users_with_similar_children_age = cursor.fetchall()
-                users_with_similar_children_age_list = [
-                    user[0] for user in users_with_similar_children_age
-                ]
-                for user_id in users_with_similar_children_age_list:
+                try:
+                    ages_of_logged_user_children = [child["age"] for child in self.get_children_of_logged_user_db(cursor)]
+                except TypeError:
+                    print(f"User with login: {self.login} has no children.")
+                else:
+                    placeholders = ",".join("?" * len(ages_of_logged_user_children))
                     cursor.execute(
-                        """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""",
-                        (user_id,),
+                        """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
+                            placeholders
+                        ),
+                        ages_of_logged_user_children,
                     )
-                    result = cursor.fetchall()
-                    sorted_by_children_name = sorted(result, key=lambda x: x[3])
-                    parent_name = sorted_by_children_name[0][0]
-                    parent_telephone = sorted_by_children_name[0][2]
-                    children_formatted = "; ".join(
-                        f"{child[3]}, {child[4]}" for child in sorted_by_children_name
-                    )
-                    print(f"{parent_name}, {parent_telephone}: {children_formatted}")
+                    users_with_similar_children_age = [
+                        user[0] for user in cursor.fetchall()
+                    ]
+                    for user_id in users_with_similar_children_age:
+                        cursor.execute(
+                            """SELECT firstname, email, telephone_number FROM users_data WHERE user_id = ? AND (email !=  ? AND telephone_number != ?);""",
+                            (user_id, self.login, self.login),
+                        )
+                        result = cursor.fetchone()
+                        if result:
+                            firstname, email, telephone_number = result
+                            cursor.execute(
+                                """SELECT child_name, child_age FROM users_children WHERE parent_id = ?;""", (user_id,)
+                            )
+                            children_info = cursor.fetchall()
+                            sorted_by_children_name = sorted(children_info, key=lambda x: x[0])
+                            children_formatted = "; ".join(
+                                f"{child[0]}, {child[1]}" for child in sorted_by_children_name
+                            )
+                            print(f"{firstname}, {telephone_number}: {children_formatted}")
 
         except sqlite3.Error:
             print("Error while finding the similar children by age from database.")
@@ -299,7 +295,7 @@ class Actions:
         else:
             return user_data
 
-    def get_data_of_user_children(self) -> Optional[List[dict]]:
+    def get_children_of_logged_user(self) -> Optional[List[dict]]:
         try:
             children_data = self.get_data_of_user()["children"]
         except TypeError:
@@ -307,13 +303,36 @@ class Actions:
         else:
             return children_data
 
-    def get_data_of_user_role(self) -> Optional[str]:
+    def get_children_of_logged_user_db(self, cursor) -> Optional[List[dict]]:
+        cursor.execute(
+            "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
+            (self.login, self.login),
+        )
+        result = cursor.fetchall()
+        if result:
+            children_data = [{"name": child[0], "age": child[1]} for child in result]
+        else:
+            return None
+        return children_data
+
+    def get_role_of_logged_user(self) -> Optional[str]:
         try:
             role = self.get_data_of_user()["role"]
         except TypeError:
             return None
         else:
             return role
+
+    def get_role_of_logged_user_db(self, cursor) -> Optional[str]:
+        cursor.execute(
+            "SELECT role FROM users_data WHERE (email = ? OR telephone_number = ?) AND password = ?;",
+            (self.login, self.login, self.password),
+        )
+        user_role = cursor.fetchone()
+        if user_role:
+            return user_role[0]
+        else:
+            return None
 
     @admin_required
     def create_database(self):
