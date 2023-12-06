@@ -90,24 +90,22 @@ class Actions:
 
     @authentication_required
     def print_children_from_db(self):
-        db_conn = sqlite3.connect(db)
-        cursor = db_conn.cursor()
         try:
-            user_children = cursor.execute(
-                "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
-                (self.login, self.login),
-            ).fetchall()
+            with sqlite3.connect(db) as db_conn:
+                cursor = db_conn.cursor()
+                cursor.execute(
+                    "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
+                    (self.login, self.login),
+                )
+                children_of_user = cursor.fetchall()
+                if children_of_user:
+                    children_of_user.sort(key=lambda x: x[0])
+                    for child in children_of_user:
+                        print(f"{child[0]}, {child[1]}")
+                else:
+                    print(f"User with login: {self.login} has no children.")
         except sqlite3.Error as e:
             print("Error while processing db", e)
-        else:
-            if user_children:
-                user_children.sort(key=lambda x: x[0])
-                for child in user_children:
-                    print(f"{child[0]}, {child[1]}")
-            else:
-                print(f"User with login: {self.login} has no children.")
-        finally:
-            db_conn.close()
 
     @authentication_required
     def find_similar_children_by_age(self):
@@ -157,51 +155,45 @@ class Actions:
 
     @authentication_required
     def find_similar_children_by_age_from_db(self):
-        db_conn = sqlite3.connect(db)
-        cursor = db_conn.cursor()
         try:
-            result_user_children = cursor.execute(
-                """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
-                (self.login, self.login),
-            ).fetchall()
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
-        else:
-            ages_of_users_children = [child[0] for child in result_user_children]
-            placeholders = ",".join("?" * len(ages_of_users_children))
-            try:
-                users_with_similar_children_age = cursor.execute(
+            with sqlite3.connect(db) as db_conn:
+                cursor = db_conn.cursor()
+                cursor.execute(
+                    """SELECT uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;""",
+                    (self.login, self.login),
+                )
+                result_user_children = cursor.fetchall()
+                ages_of_users_children = [child[0] for child in result_user_children]
+                placeholders = ",".join("?" * len(ages_of_users_children))
+                cursor.execute(
                     """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
                         placeholders
                     ),
                     ages_of_users_children,
-                ).fetchall()
-            except sqlite3.Error as e:
-                print("Error while processing db", e)
-            else:
+                )
+                users_with_similar_children_age = cursor.fetchall()
                 users_with_similar_children_age_list = [
                     user[0] for user in users_with_similar_children_age
                 ]
-                try:
-                    for user_id in users_with_similar_children_age_list:
-                        result = cursor.execute(
-                            """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""",
-                            (user_id,),
-                        ).fetchall()
-                        sorted_by_children_name = sorted(result, key=lambda x: x[3])
-                        parent_name = sorted_by_children_name[0][0]
-                        parent_telephone = sorted_by_children_name[0][2]
-                        children_formatted = "; ".join(
-                            f"{child[3]}, {child[4]}"
-                            for child in sorted_by_children_name
-                        )
-                        print(
-                            f"{parent_name}, {parent_telephone}: {children_formatted}"
-                        )
-                except sqlite3.Error as e:
-                    print("Error while processing db", e)
-                finally:
-                    db_conn.close()
+                for user_id in users_with_similar_children_age_list:
+                    cursor.execute(
+                        """SELECT ud.firstname, ud.email, ud.telephone_number, uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.user_id = ?""",
+                        (user_id,),
+                    )
+                    result = cursor.fetchall()
+                    sorted_by_children_name = sorted(result, key=lambda x: x[3])
+                    parent_name = sorted_by_children_name[0][0]
+                    parent_telephone = sorted_by_children_name[0][2]
+                    children_formatted = "; ".join(
+                        f"{child[3]}, {child[4]}"
+                        for child in sorted_by_children_name
+                    )
+                    print(
+                        f"{parent_name}, {parent_telephone}: {children_formatted}"
+                    )
+
+        except sqlite3.Error as e:
+            print("Error while processing db", e)
 
     @admin_required
     def print_all_accounts(self):
@@ -212,17 +204,17 @@ class Actions:
 
     @admin_required
     def print_all_accounts_from_db(self):
-        db_conn = sqlite3.connect(db)
-        cursor = db_conn.cursor()
         try:
-            result = cursor.execute(
-                """SELECT COUNT(*) FROM users_data;"""
-            ).fetchone()[0]
-            print(int(result))
+            with sqlite3.connect(db) as db_conn:
+                cursor = db_conn.cursor()
+                cursor.execute(
+                    """SELECT COUNT(*) FROM users_data;"""
+                )
+                all_accounts = cursor.fetchone()
+                if all_accounts:
+                    print(int(all_accounts[0]))
         except sqlite3.Error as e:
             print("Error while processing db", e)
-        finally:
-            db_conn.close()
 
     @admin_required
     def print_oldest_account(self):
@@ -241,24 +233,23 @@ class Actions:
 
     @admin_required
     def print_oldest_account_from_db(self):
-        db_conn = sqlite3.connect(db)
-        cursor = db_conn.cursor()
         try:
-            firstname, email, created_at = cursor.execute(
-                """SELECT firstname, email, created_at
-                 FROM users_data
-                ORDER BY created_at ASC
-                LIMIT 1;"""
-            ).fetchone()
-            print(
-                f"name: {firstname}\n"
-                f"email_address: {email}\n"
-                f"created_at: {created_at}"
-            )
+            with sqlite3.connect(db) as db_conn:
+                cursor = db_conn.cursor()
+                cursor.execute(
+                    """SELECT firstname, email, created_at
+                     FROM users_data
+                    ORDER BY created_at ASC
+                    LIMIT 1;"""
+                )
+                firstname, email, created_at = cursor.fetchone()
+                print(
+                    f"name: {firstname}\n"
+                    f"email_address: {email}\n"
+                    f"created_at: {created_at}"
+                )
         except sqlite3.Error as e:
             print("Error while processing db", e)
-        finally:
-            db_conn.close()
 
     @admin_required
     def group_children_by_age(self):
@@ -289,47 +280,43 @@ class Actions:
 
     @admin_required
     def group_children_by_age_from_db(self):
-        db_conn = sqlite3.connect(db)
-        cursor = db_conn.cursor()
         try:
-            result_ages_of_all_children = cursor.execute(
-                """SELECT child_age from users_children"""
-            ).fetchall()
+            with sqlite3.connect(db) as db_conn:
+                cursor = db_conn.cursor()
+                cursor.execute(
+                    """SELECT child_age from users_children"""
+                )
+                result_ages_of_all_children = cursor.fetchall()
+                if result_ages_of_all_children:
+                    ages_of_all_children = [
+                        child[0] for child in result_ages_of_all_children
+                    ]
+                    sorted_age_of_children = sorted(ages_of_all_children)
+                    grouped_age_of_children = sorted(
+                        [
+                            {"age": key, "count": len(list(group))}
+                            for key, group in itertools.groupby(sorted_age_of_children)
+                        ],
+                        key=lambda x: x["count"],
+                    )
+                    for child_age in grouped_age_of_children:
+                        print(f"age: {child_age['age']}, count: {child_age['count']}")
         except sqlite3.Error as e:
             print("Error while processing db", e)
-        else:
-            ages_of_all_children = [
-                child[0] for child in result_ages_of_all_children
-            ]
-            sorted_age_of_children = sorted(ages_of_all_children)
-            grouped_age_of_children = sorted(
-                [
-                    {"age": key, "count": len(list(group))}
-                    for key, group in itertools.groupby(sorted_age_of_children)
-                ],
-                key=lambda x: x["count"],
-            )
-            for child_age in grouped_age_of_children:
-                print(f"age: {child_age['age']}, count: {child_age['count']}")
-        finally:
-            db_conn.close()
 
     @admin_required
     def create_database(self):
-        if self.db_available:
-            print("Database exists already.")
-        else:
-            db_conn = sqlite3.connect(db)
-            cursor = db_conn.cursor()
+        if not self.db_available:
             try:
-                Actions.create_starting_db_tables(cursor)
-                Actions.add_users_data_to_db(db_conn, final_users_data)
+                with sqlite3.connect(db) as db_conn:
+                    cursor = db_conn.cursor()
+                    Actions.create_starting_db_tables(cursor)
+                    Actions.add_users_data_to_db(db_conn, final_users_data)
+                    print("Database created and users data added.")
             except sqlite3.Error as e:
                 print("Error while creating/filling db tables:", e)
-            else:
-                print("Database created and users data added.")
-            finally:
-                db_conn.close()
+        else:
+            print("Database exists already.")
 
     @staticmethod
     def add_users_data_to_db(db_conn, users_data):
@@ -362,8 +349,6 @@ class Actions:
         except sqlite3.Error as e:
             print("Error while filling in db tables:", e)
             db_conn.rollback()
-        finally:
-            db_conn.close()
 
     @staticmethod
     def create_starting_db_tables(cursor):
