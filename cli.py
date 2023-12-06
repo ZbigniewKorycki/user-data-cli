@@ -3,7 +3,6 @@ from actions import Actions
 import re
 from users_data_utils import UsersDataFormatter
 
-parser = ArgumentParser()
 PHONE_VALIDATION_PATTERN = r"[\d]{9}"
 EMAIL_VALID_PATTERN = UsersDataFormatter.EMAIL_VALID_PATTERN
 
@@ -35,30 +34,36 @@ def validate_login(login):
     return "Invalid Login"
 
 
-parser.add_argument("command", type=str, help="enter command")
-parser.add_argument("--login", type=validate_login, help="input user login")
-parser.add_argument("--password", type=str, help="input user password")
-args: Namespace = parser.parse_args()
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("command", type=str, help="enter command")
+    parser.add_argument("--login", type=validate_login, help="input user login")
+    parser.add_argument("--password", type=str, help="input user password")
+    args: Namespace = parser.parse_args()
 
-if args.command in commands_list:
-    action = Actions(login=args.login, password=args.password)
+    if args.command in commands_list:
+        action = Actions(login=args.login, password=args.password)
 
-    if args.command == "print-all-accounts":
-        action.print_all_accounts()
+        if args.command == "print-all-accounts":
+            action.print_all_accounts()
 
-    elif args.command == "print-oldest-account":
-        action.print_oldest_account()
+        elif args.command == "print-oldest-account":
+            action.print_oldest_account()
 
-    elif args.command == "group-by-age":
-        action.group_children_by_age()
+        elif args.command == "group-by-age":
+            action.group_children_by_age()
 
-    elif args.command == "print-children":
-        action.print_children()
+        elif args.command == "print-children":
+            action.print_children()
 
-    elif args.command == "find-similar-children-by-age":
-        action.find_similar_children_by_age()
+        elif args.command == "find-similar-children-by-age":
+            action.find_similar_children_by_age()
 
-    elif args.command == "create-database":
-        action.create_database()
-else:
-    print("Unrecognized command")
+        elif args.command == "create-database":
+            action.create_database()
+    else:
+        print("Unrecognized command")
+
+
+if __name__ == "__main__":
+    main()
