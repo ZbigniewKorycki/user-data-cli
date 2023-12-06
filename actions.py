@@ -89,8 +89,8 @@ class Actions:
                 children_of_user = cursor.fetchall()
                 if children_of_user:
                     children_of_user.sort(key=lambda x: x[0])
-                    for child in children_of_user:
-                        print(f"{child[0]}, {child[1]}")
+                    for child_name, child_age in children_of_user:
+                        print(f"{child_name}, {child_age}")
                 else:
                     print(f"User with login: {self.login} has no children.")
         except sqlite3.Error:
@@ -240,24 +240,16 @@ class Actions:
             self.group_children_by_age_db()
         else:
             children_data = final_users_data["children"].to_list()
-            verified_children_data = [
+            children_valid_data = [
                 child for child in children_data if child is not None
             ]
             ages_of_all_children = [
                 child["age"]
-                for user in verified_children_data
+                for user in children_valid_data
                 for child in user
                 if isinstance(child["age"], int)
             ]
-
-            sorted_age_of_children = sorted(ages_of_all_children)
-            grouped_age_of_children = sorted(
-                [
-                    {"age": key, "count": len(list(group))}
-                    for key, group in itertools.groupby(sorted_age_of_children)
-                ],
-                key=lambda x: x["count"],
-            )
+            grouped_age_of_children = Actions.group_children_ages_helper(ages_of_all_children)
             for child_age in grouped_age_of_children:
                 print(f"age: {child_age['age']}, count: {child_age['count']}")
 
@@ -272,18 +264,23 @@ class Actions:
                     ages_of_all_children = [
                         child[0] for child in result_ages_of_all_children
                     ]
-                    sorted_age_of_children = sorted(ages_of_all_children)
-                    grouped_age_of_children = sorted(
-                        [
-                            {"age": key, "count": len(list(group))}
-                            for key, group in itertools.groupby(sorted_age_of_children)
-                        ],
-                        key=lambda x: x["count"],
-                    )
+                    grouped_age_of_children = Actions.group_children_ages_helper(ages_of_all_children)
                     for child_age in grouped_age_of_children:
                         print(f"age: {child_age['age']}, count: {child_age['count']}")
         except sqlite3.Error:
             print("Error while grouping children by age from database.")
+
+    @staticmethod
+    def group_children_ages_helper(list_of_children_ages: List[int]) -> List[dict]:
+        sorted_list_od_children_ages = sorted(list_of_children_ages)
+        grouped_ages_of_children = sorted(
+            [
+                {"age": key, "count": len(list(group))}
+                for key, group in itertools.groupby(sorted_list_od_children_ages)
+            ],
+            key=lambda x: x["count"],
+        )
+        return grouped_ages_of_children
 
     def get_data_of_user(self) -> Optional[dict]:
         try:
