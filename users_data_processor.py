@@ -8,7 +8,7 @@ def process_users_data(files_path) -> DataFrame:
         merger = UsersDataMerger(files_path)
         merged_data = merger.merge_data(UsersDataExtractor, UsersDataFormatter)
         merger.process_merged_users_data(merged_data)
-        final_data = merger.df_merged_users_data
+        final_data = merger.df_merged_data
     except Exception as e:
         print(f"An error occurred during data processing: {e}")
     else:

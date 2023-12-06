@@ -5,7 +5,7 @@ from users_data_utils import UsersDataFormatter
 
 parser = ArgumentParser()
 PHONE_VALIDATION_PATTERN = r"[\d]{9}"
-EMAIL_VALIDATION_PATTERN = UsersDataFormatter.EMAIL_VALIDATION_PATTERN
+EMAIL_VALID_PATTERN = UsersDataFormatter.EMAIL_VALID_PATTERN
 
 commands_list = [
     "print-all-accounts",
@@ -26,7 +26,7 @@ def validate_login(login):
         if phone_validation:
             return login
     try:
-        email_validation = re.match(EMAIL_VALIDATION_PATTERN, login, re.IGNORECASE)
+        email_validation = re.match(EMAIL_VALID_PATTERN, login, re.IGNORECASE)
     except TypeError:
         pass
     else:
