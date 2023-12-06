@@ -1,10 +1,11 @@
 import re
 import xmltodict
 import xml.etree.ElementTree as ET
-from typing import List, Optional, Union
+from typing import List, Optional
 import csv
 import json
 import pandas as pd
+from pandas import DataFrame
 
 
 class UsersDataExtractor:
@@ -22,11 +23,11 @@ class UsersDataExtractor:
             return file_extension
 
     def extract_data(self) -> Optional[List[dict]]:
-        if self.file_extension.lower() == "xml":
+        if self.file_extension == "xml":
             return self.parse_xml()
-        elif self.file_extension.lower() == "csv":
+        elif self.file_extension == "csv":
             return self.read_csv()
-        elif self.file_extension.lower() == "json":
+        elif self.file_extension == "json":
             return self.read_json()
         else:
             print(f"File extension ({self.file_extension}) is not supported.")
@@ -57,7 +58,7 @@ class UsersDataFormatter:
         self.data = data_to_format
 
     @staticmethod
-    def filter_data(data: Optional[List[dict]]) -> Optional[List[dict]]:
+    def filter_data(data: List[dict]) -> List[dict]:
         return [user for user in data if user is not None]
 
     @classmethod
@@ -69,7 +70,7 @@ class UsersDataFormatter:
         return True if key in user and user[key] not in ["", None, []] else False
 
     @classmethod
-    def is_email_valid(cls, email: Union[str, dict]) -> bool:
+    def is_email_valid(cls, email: str) -> bool:
         try:
             result = re.match(cls.EMAIL_VALID_PATTERN, email, re.IGNORECASE)
         except TypeError:
@@ -118,7 +119,7 @@ class UsersDataFormatter:
     @classmethod
     def format_user_data(cls, user: dict) -> Optional[dict]:
         if not cls.is_data_present("telephone_number", user) or not cls.is_email_valid(
-            user.get("email")
+                user.get("email")
         ):
             return None
         user["telephone_number"] = cls.format_tel_num(user["telephone_number"])
@@ -139,31 +140,33 @@ class UsersDataFormatter:
 
 
 class UsersDataMerger:
-    def __init__(self, files_path: List[str]):
-        self.files_path = files_path
-        self.df_merged_data = None
 
-    def merge_data(self, data_extractor, data_formatter) -> List[dict]:
+    @staticmethod
+    def merge_data(files_path: List[str], data_extractor, data_formatter) -> List[dict]:
         merged_data = []
-        for path in self.files_path:
+        for path in files_path:
             extracted_data = data_extractor(path).extract_data()
             formatted_data = data_formatter(extracted_data).process_data()
             if formatted_data:
                 merged_data.extend(formatted_data)
         return merged_data
 
-    def process_merged_users_data(self, merged_data: List[dict]):
+    @staticmethod
+    def process_merged_users_data(merged_data: List[dict]) -> DataFrame:
         try:
-            self.df_merged_data = pd.DataFrame(merged_data)
-            if not self.df_merged_data.empty:
-                self.df_merged_data = self.df_merged_data.sort_values(
+            df_merged_data = pd.DataFrame(merged_data)
+            if not df_merged_data.empty:
+                df_merged_data = df_merged_data.sort_values(
                     by="created_at", ascending=False
                 )
-                self.df_merged_data.drop_duplicates(
+                df_merged_data.drop_duplicates(
                     subset=["telephone_number"], keep="first", inplace=True
                 )
-                self.df_merged_data.drop_duplicates(
+                df_merged_data.drop_duplicates(
                     subset=["email"], keep="first", inplace=True
                 )
         except Exception as e:
             print(f"Encounter error while processing merged data: {e}")
+            return DataFrame()
+        else:
+            return df_merged_data

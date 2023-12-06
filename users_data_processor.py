@@ -5,12 +5,11 @@ from pandas import DataFrame
 
 def process_users_data(files_path) -> DataFrame:
     try:
-        merger = UsersDataMerger(files_path)
-        merged_data = merger.merge_data(UsersDataExtractor, UsersDataFormatter)
-        merger.process_merged_users_data(merged_data)
-        final_data = merger.df_merged_data
+        merged_data = UsersDataMerger.merge_data(files_path, UsersDataExtractor, UsersDataFormatter)
+        final_data = UsersDataMerger.process_merged_users_data(merged_data)
     except Exception as e:
         print(f"An error occurred during data processing: {e}")
+        return DataFrame()
     else:
         return final_data
 

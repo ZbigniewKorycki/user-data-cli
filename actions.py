@@ -301,12 +301,10 @@ class Actions:
             return user_data
 
     def get_children_of_logged_user(self) -> Optional[List[dict]]:
-        try:
-            children_data = self.get_data_of_user()["children"]
-        except TypeError:
-            return None
-        else:
-            return children_data
+        user_data = self.get_data_of_user()
+        if user_data and isinstance(user_data.get("children"), list):
+            return user_data["children"]
+        return None
 
     def get_children_of_logged_user_db(self, cursor: Cursor) -> Optional[List[dict]]:
         cursor.execute(
@@ -323,12 +321,10 @@ class Actions:
         return children_data
 
     def get_role_of_logged_user(self) -> Optional[str]:
-        try:
-            role = self.get_data_of_user()["role"]
-        except TypeError:
-            return None
-        else:
-            return role
+        user_data = self.get_data_of_user()
+        if user_data and isinstance(user_data.get("role"), str):
+            return user_data["role"]
+        return None
 
     def get_role_of_logged_user_db(self, cursor: Cursor) -> Optional[str]:
         cursor.execute(
