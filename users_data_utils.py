@@ -57,7 +57,7 @@ class UsersDataFormatter:
         self.data = data_to_format
 
     @staticmethod
-    def filter_valid_data(data: Optional[List[dict]]) -> Optional[List[dict]]:
+    def filter_data(data: Optional[List[dict]]) -> Optional[List[dict]]:
         return [user for user in data if user is not None]
 
     @classmethod
@@ -65,7 +65,7 @@ class UsersDataFormatter:
         return re.sub(cls.TELEPHONE_FORMATTING_PATTERN, "", number)
 
     @staticmethod
-    def is_data_present_in_user(key: str, user: dict) -> bool:
+    def is_data_present(key: str, user: dict) -> bool:
         return True if key in user and user[key] not in ["", None, []] else False
 
     @classmethod
@@ -79,7 +79,7 @@ class UsersDataFormatter:
 
     @classmethod
     def get_info_on_user_children(cls, user: dict) -> Optional[List[dict]]:
-        if not cls.is_data_present_in_user("children", user):
+        if not cls.is_data_present("children", user):
             return None
         children_data = user.get("children", '')
         # Check if children from users data type xml
@@ -117,7 +117,7 @@ class UsersDataFormatter:
 
     @classmethod
     def format_user_data(cls, user: dict) -> Optional[dict]:
-        if not cls.is_data_present_in_user(
+        if not cls.is_data_present(
             "telephone_number", user
         ) or not cls.is_email_valid(user.get("email")):
             return None
@@ -131,7 +131,7 @@ class UsersDataFormatter:
             format_data = [
                 UsersDataFormatter.format_user_data(user) for user in self.data
             ]
-            valid_data = UsersDataFormatter.filter_valid_data(format_data)
+            valid_data = UsersDataFormatter.filter_data(format_data)
         except Exception as e:
             print(f"Encounter error while processing data {e}")
             return None
