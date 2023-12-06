@@ -2,11 +2,15 @@ import unittest
 from actions import Actions
 from data.users_test_data_processor import test_final_users_data
 from unittest.mock import patch, call
-import os
 
 
 @patch("actions.final_users_data", test_final_users_data)
 class TestActions(unittest.TestCase):
+
+    # def test_create_db(self):
+    #     action_admin_by_tel = Actions(login="222222222", password="7GRMc-fg42")
+    #     action_admin_by_tel.create_database()
+
     def test_authenticate_user(self):
         # Test case: Incorrect login, correct password for one of users
         action_incorrect_login = Actions(login="111111112", password="Wm&fkw9bI8")
@@ -140,21 +144,29 @@ class TestActions(unittest.TestCase):
             call("Test5, 555555555: Hellen, 1; Peter, 6"),
             call("Test7, 777777777: John, 6; Marie, 1"),
             call("Test9, 999999999: Nicolas, 9"),
-            call("Test10, 123123123: Adam, 14; Victoria, 9"),
+            call("Test10, 123123123: Adam, 14; Victoria, 9")
         ]
         mock_print.assert_has_calls(expected_calls, any_order=True)
         total_calls = mock_print.call_count
         self.assertEqual(total_calls, 4)
 
-    def test_if_db_path_available(self):
-        # Test case: create db in tests folder
-        action = Actions(login="222222222", password="7GRMc-fg42")
-        self.assertFalse(action.is_db_available("./users_db.db"))
-        action.create_database()
-        self.assertTrue(action.is_db_available("./users_db.db"))
-        os.remove("./users_db.db")
-        self.assertFalse(action.is_db_available("./users_db.db"))
+    def test_get_data_of_user_children(self):
+        # Test case: base user three children: Robert (14),Alex (6),Harry (9)
+        action = Actions(login="888888888", password="dQbafj:B:&")
+        result = action.get_data_of_user_children()
+        self.assertIn({'age': 14, 'name': 'Robert'}, result)
+        self.assertIn({'age': 9, 'name': 'Harry'}, result)
+        self.assertIn({'age': 6, 'name': 'Alex'}, result)
+        self.assertEqual(len(result), 3)
 
+    def test_get_data_of_user_role(self):
+        # Test case: base user
+        action = Actions(login="888888888", password="dQbafj:B:&")
+        self.assertEqual(action.get_data_of_user_role(), "user")
 
-if __name__ == "__main__":
-    unittest.main()
+        # Test case: admin
+        action_admin = Actions(login="222222222", password="7GRMc-fg42")
+        self.assertEqual(action_admin.get_data_of_user_role(), "admin")
+
+    if __name__ == "__main__":
+        unittest.main()

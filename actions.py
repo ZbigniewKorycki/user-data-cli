@@ -4,45 +4,34 @@ import itertools
 import os.path
 import sqlite3
 import os
+from typing import Optional, List
 
 
 class Actions:
-
     def __init__(self, login, password):
         self.login = login
         self.password = password
         self.authenticated_user = False
         self.role = None
-        self.user_data = None
         self.db_available = Actions.is_db_available(db)
         self.authenticate_user()
 
     def authenticate_user(self):
         if self.db_available:
-            self.authenticate_user_from_db()
+            self.authenticate_user_with_db()
         else:
-            try:
-                user = final_users_data[
-                    (
-                            (final_users_data["email"] == self.login)
-                            | (final_users_data["telephone_number"] == self.login)
-                    )
-                    & (final_users_data["password"] == self.password)
-                    ].to_dict(orient="records")[0]
-            except IndexError:
-                self.authenticated_user = False
-            else:
+            user = self.get_data_of_user()
+            if user is not None:
                 self.authenticated_user = True
-                self.role = user["role"]
-                self.user_data = user
+                self.role = self.get_data_of_user_role()
 
-    def authenticate_user_from_db(self):
+    def authenticate_user_with_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
                 cursor.execute(
                     "SELECT role FROM users_data WHERE (email = ? OR telephone_number = ?) AND password = ?;",
-                    (self.login, self.login, self.password)
+                    (self.login, self.login, self.password),
                 )
                 user_role = cursor.fetchone()
                 if user_role:
@@ -78,9 +67,9 @@ class Actions:
     @authentication_required
     def print_children(self):
         if self.db_available:
-            self.print_children_from_db()
+            self.print_children_db()
         else:
-            user_children = self.user_data["children"]
+            user_children = self.get_data_of_user_children()
             if user_children:
                 user_children.sort(key=lambda x: x["name"])
                 for child in user_children:
@@ -89,7 +78,7 @@ class Actions:
                 print(f"User with login: {self.login} has no children.")
 
     @authentication_required
-    def print_children_from_db(self):
+    def print_children_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
@@ -110,12 +99,11 @@ class Actions:
     @authentication_required
     def find_similar_children_by_age(self):
         if self.db_available:
-            self.find_similar_children_by_age_from_db()
+            self.find_similar_children_by_age_db()
         else:
             try:
-                ages_of_users_children = [
-                    child["age"] for child in self.user_data["children"]
-                ]
+                users_children_data = self.get_data_of_user_children()
+                ages_of_users_children = [child["age"] for child in users_children_data]
             except TypeError:
                 print(f"User with login: {self.login} has no children.")
             else:
@@ -138,8 +126,8 @@ class Actions:
                 )
                 for user in similar_users:
                     if (
-                            user["telephone_number"] == self.login
-                            or user["email"] == self.login
+                        user["telephone_number"] == self.login
+                        or user["email"] == self.login
                     ):
                         continue
                     children_sorted_by_name = sorted(
@@ -154,7 +142,7 @@ class Actions:
                     )
 
     @authentication_required
-    def find_similar_children_by_age_from_db(self):
+    def find_similar_children_by_age_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
@@ -185,12 +173,9 @@ class Actions:
                     parent_name = sorted_by_children_name[0][0]
                     parent_telephone = sorted_by_children_name[0][2]
                     children_formatted = "; ".join(
-                        f"{child[3]}, {child[4]}"
-                        for child in sorted_by_children_name
+                        f"{child[3]}, {child[4]}" for child in sorted_by_children_name
                     )
-                    print(
-                        f"{parent_name}, {parent_telephone}: {children_formatted}"
-                    )
+                    print(f"{parent_name}, {parent_telephone}: {children_formatted}")
 
         except sqlite3.Error as e:
             print("Error while processing db", e)
@@ -198,18 +183,16 @@ class Actions:
     @admin_required
     def print_all_accounts(self):
         if self.db_available:
-            self.print_all_accounts_from_db()
+            self.print_all_accounts_db()
         else:
             print(len(final_users_data))
 
     @admin_required
-    def print_all_accounts_from_db(self):
+    def print_all_accounts_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
-                cursor.execute(
-                    """SELECT COUNT(*) FROM users_data;"""
-                )
+                cursor.execute("""SELECT COUNT(*) FROM users_data;""")
                 all_accounts = cursor.fetchone()
                 if all_accounts:
                     print(int(all_accounts[0]))
@@ -219,7 +202,7 @@ class Actions:
     @admin_required
     def print_oldest_account(self):
         if self.db_available:
-            self.print_oldest_account_from_db()
+            self.print_oldest_account_db()
         else:
             oldest_account = final_users_data.sort_values(by="created_at").to_dict(
                 orient="records"
@@ -232,7 +215,7 @@ class Actions:
                 )
 
     @admin_required
-    def print_oldest_account_from_db(self):
+    def print_oldest_account_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
@@ -254,7 +237,7 @@ class Actions:
     @admin_required
     def group_children_by_age(self):
         if self.db_available:
-            self.group_children_by_age_from_db()
+            self.group_children_by_age_db()
         else:
             children_data = final_users_data["children"].to_list()
             verified_children_data = [
@@ -279,13 +262,11 @@ class Actions:
                 print(f"age: {child_age['age']}, count: {child_age['count']}")
 
     @admin_required
-    def group_children_by_age_from_db(self):
+    def group_children_by_age_db(self):
         try:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
-                cursor.execute(
-                    """SELECT child_age from users_children"""
-                )
+                cursor.execute("""SELECT child_age from users_children""")
                 result_ages_of_all_children = cursor.fetchall()
                 if result_ages_of_all_children:
                     ages_of_all_children = [
@@ -303,6 +284,36 @@ class Actions:
                         print(f"age: {child_age['age']}, count: {child_age['count']}")
         except sqlite3.Error as e:
             print("Error while processing db", e)
+
+    def get_data_of_user(self) -> Optional[dict]:
+        try:
+            user_data = final_users_data[
+                (
+                    (final_users_data["email"] == self.login)
+                    | (final_users_data["telephone_number"] == self.login)
+                )
+                & (final_users_data["password"] == self.password)
+            ].to_dict(orient="records")[0]
+        except (TypeError, IndexError):
+            return None
+        else:
+            return user_data
+
+    def get_data_of_user_children(self) -> Optional[List[dict]]:
+        try:
+            children_data = self.get_data_of_user()["children"]
+        except TypeError:
+            return None
+        else:
+            return children_data
+
+    def get_data_of_user_role(self) -> Optional[str]:
+        try:
+            role = self.get_data_of_user()["role"]
+        except TypeError:
+            return None
+        else:
+            return role
 
     @admin_required
     def create_database(self):
