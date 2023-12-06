@@ -7,7 +7,8 @@ from unittest.mock import patch, call
 @patch("actions.final_users_data", test_final_users_data)
 class TestActions(unittest.TestCase):
 
-    # def test_create_db(self):
+    # To test TestActions with db, uncomment below func.
+    # def test_with_db(self):
     #     action_admin_by_tel = Actions(login="222222222", password="7GRMc-fg42")
     #     action_admin_by_tel.create_database()
 
@@ -44,9 +45,7 @@ class TestActions(unittest.TestCase):
         self.assertEqual(admin_tel.password, "7GRMc-fg42")
 
         # Test case: Admin, login with email
-        admin_email = Actions(
-            login="test2@example.com", password="7GRMc-fg42"
-        )
+        admin_email = Actions(login="test2@example.com", password="7GRMc-fg42")
         self.assertEqual(admin_email.role, "admin")
         self.assertTrue(admin_email.authenticated_user)
         self.assertEqual(admin_email.login, "test2@example.com")
@@ -143,7 +142,7 @@ class TestActions(unittest.TestCase):
             call("Test5, 555555555: Hellen, 1; Peter, 6"),
             call("Test7, 777777777: John, 6; Marie, 1"),
             call("Test9, 999999999: Nicolas, 9"),
-            call("Test10, 123123123: Adam, 14; Victoria, 9")
+            call("Test10, 123123123: Adam, 14; Victoria, 9"),
         ]
         mock_print.assert_has_calls(expected_calls, any_order=True)
         total_calls = mock_print.call_count
@@ -153,9 +152,9 @@ class TestActions(unittest.TestCase):
         # Test case: base user three children: Robert (14),Alex (6),Harry (9)
         action = Actions(login="888888888", password="dQbafj:B:&")
         result = action.get_children_of_logged_user()
-        self.assertIn({'age': 14, 'name': 'Robert'}, result)
-        self.assertIn({'age': 9, 'name': 'Harry'}, result)
-        self.assertIn({'age': 6, 'name': 'Alex'}, result)
+        self.assertIn({"age": 14, "name": "Robert"}, result)
+        self.assertIn({"age": 9, "name": "Harry"}, result)
+        self.assertIn({"age": 6, "name": "Alex"}, result)
         self.assertEqual(len(result), 3)
 
     def test_get_data_of_user_role(self):

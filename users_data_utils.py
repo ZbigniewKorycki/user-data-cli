@@ -81,7 +81,7 @@ class UsersDataFormatter:
     def get_info_on_user_children(cls, user: dict) -> Optional[List[dict]]:
         if not cls.is_data_present("children", user):
             return None
-        children_data = user.get("children", '')
+        children_data = user.get("children", "")
         # Check if children from users data type xml
         if isinstance(children_data, dict):
             if isinstance(children_data.get("child"), dict):
@@ -112,14 +112,14 @@ class UsersDataFormatter:
                 try:
                     child["age"] = int(child["age"])
                 except (ValueError, KeyError):
-                    print(f'Incorrect format of child age: {child}')
+                    print(f"Incorrect format of child age: {child}")
         return children_data
 
     @classmethod
     def format_user_data(cls, user: dict) -> Optional[dict]:
-        if not cls.is_data_present(
-            "telephone_number", user
-        ) or not cls.is_email_valid(user.get("email")):
+        if not cls.is_data_present("telephone_number", user) or not cls.is_email_valid(
+            user.get("email")
+        ):
             return None
         user["telephone_number"] = cls.format_tel_num(user["telephone_number"])
         user["children"] = cls.get_info_on_user_children(user)

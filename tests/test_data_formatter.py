@@ -16,9 +16,7 @@ class TestUsersDataFormatter(unittest.TestCase):
 
         # Test case: Invalid email, without domain and extension
         email_no_domain_extension = "invalid_email@"
-        self.assertFalse(
-            UsersDataFormatter.is_email_valid(email_no_domain_extension)
-        )
+        self.assertFalse(UsersDataFormatter.is_email_valid(email_no_domain_extension))
 
         # Test case: Invalid email, without @
         email_no_at_sign = "missing_at_sign.com"
@@ -30,27 +28,19 @@ class TestUsersDataFormatter(unittest.TestCase):
 
         # Test case: Invalid email, without domain
         email_without_domain = "missing_domain@.com"
-        self.assertFalse(
-            UsersDataFormatter.is_email_valid(email_without_domain)
-        )
+        self.assertFalse(UsersDataFormatter.is_email_valid(email_without_domain))
 
         # Test case: Invalid email, @ in username
         email_at_sign_in_username = "inv@alid@example.com"
-        self.assertFalse(
-            UsersDataFormatter.is_email_valid(email_at_sign_in_username)
-        )
+        self.assertFalse(UsersDataFormatter.is_email_valid(email_at_sign_in_username))
 
         # Test case: Invalid email, @ in extension
         email_at_sign_in_extension = "invalid_email@example.@"
-        self.assertFalse(
-            UsersDataFormatter.is_email_valid(email_at_sign_in_extension)
-        )
+        self.assertFalse(UsersDataFormatter.is_email_valid(email_at_sign_in_extension))
 
         # Test case: Invalid email, @ in domain
         email_at_sign_in_domain = "invalid_email@example.@"
-        self.assertFalse(
-            UsersDataFormatter.is_email_valid(email_at_sign_in_domain)
-        )
+        self.assertFalse(UsersDataFormatter.is_email_valid(email_at_sign_in_domain))
 
         # Test case: Invalid email, extension with over 4 characters
         email_extension_over_four_char = "invalid_email@example.comnet"
@@ -67,9 +57,7 @@ class TestUsersDataFormatter(unittest.TestCase):
     def test_format_tel_num(self):
         # Test case: phone with leading zeros
         phone_zeros = "00847940862"
-        self.assertEqual(
-            UsersDataFormatter.format_tel_num(phone_zeros), "847940862"
-        )
+        self.assertEqual(UsersDataFormatter.format_tel_num(phone_zeros), "847940862")
 
         # Test case: phone with plus and area code
         phone_plus_area_code = "+48844840862"
@@ -99,9 +87,7 @@ class TestUsersDataFormatter(unittest.TestCase):
 
         # Test case: phone correct format, nothing to change
         phone_correct = "123123123"
-        self.assertEqual(
-            UsersDataFormatter.format_tel_num(phone_correct), "123123123"
-        )
+        self.assertEqual(UsersDataFormatter.format_tel_num(phone_correct), "123123123")
 
     def test_filter_data(self):
         # Test case: valid test data as list of dict
@@ -128,9 +114,7 @@ class TestUsersDataFormatter(unittest.TestCase):
         )
 
         # Test case: check if children of value [] is recognized as not present
-        self.assertFalse(
-            UsersDataFormatter.is_data_present("children", test_user)
-        )
+        self.assertFalse(UsersDataFormatter.is_data_present("children", test_user))
 
         # Test case: check if role of value "user" is recognized as present
         self.assertTrue(UsersDataFormatter.is_data_present("role", test_user))
@@ -248,9 +232,7 @@ class TestUsersDataFormatter(unittest.TestCase):
     def test_children_age_to_int(self):
         # Test case: one child,  age as str
         test_children_data_one = [{"name": "Adam", "age": "11"}]
-        result_one = UsersDataFormatter.children_age_to_int(
-            test_children_data_one
-        )
+        result_one = UsersDataFormatter.children_age_to_int(test_children_data_one)
         self.assertEqual(result_one, [{"name": "Adam", "age": 11}])
 
         # Test case: three children, mixed type int/str
@@ -259,9 +241,7 @@ class TestUsersDataFormatter(unittest.TestCase):
             {"name": "Alex", "age": 2},
             {"name": "Bob", "age": "4"},
         ]
-        result_three = UsersDataFormatter.children_age_to_int(
-            test_children_data_three
-        )
+        result_three = UsersDataFormatter.children_age_to_int(test_children_data_three)
         self.assertEqual(
             result_three,
             [
@@ -273,10 +253,8 @@ class TestUsersDataFormatter(unittest.TestCase):
 
         # Test case: one child, invalid str to num
         children_data_one_invalid = [{"name": "Adam", "age": "one"}]
-        result_after_conversion_invalid = (
-            UsersDataFormatter.children_age_to_int(
-                children_data_one_invalid
-            )
+        result_after_conversion_invalid = UsersDataFormatter.children_age_to_int(
+            children_data_one_invalid
         )
         self.assertEqual(
             result_after_conversion_invalid, [{"name": "Adam", "age": "one"}]

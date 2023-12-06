@@ -96,17 +96,18 @@ class Actions:
             self.find_similar_children_by_age_db()
         else:
             try:
-                children_ages = [child["age"] for child in self.get_children_of_logged_user()]
+                children_ages = [
+                    child["age"] for child in self.get_children_of_logged_user()
+                ]
             except TypeError:
                 print(f"User with login: {self.login} has no children.")
             else:
-                similar_users = Actions.find_users_with_children_of_age(
-                    children_ages)
+                similar_users = Actions.find_users_with_children_of_age(children_ages)
                 try:
                     for user in similar_users:
                         if (
-                                user["telephone_number"] == self.login
-                                or user["email"] == self.login
+                            user["telephone_number"] == self.login
+                            or user["email"] == self.login
                         ):
                             continue
                         children_sorted_by_name = sorted(
@@ -128,8 +129,10 @@ class Actions:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
                 try:
-                    ages_of_logged_user_children = [child["age"] for child in
-                                                    self.get_children_of_logged_user_db(cursor)]
+                    ages_of_logged_user_children = [
+                        child["age"]
+                        for child in self.get_children_of_logged_user_db(cursor)
+                    ]
                 except TypeError:
                     print(f"User with login: {self.login} has no children.")
                 else:
@@ -155,12 +158,15 @@ class Actions:
                             firstname, email, telephone_number = result
                             cursor.execute(
                                 """SELECT child_name, child_age FROM users_children WHERE parent_id = ?;""",
-                                (user_id,)
+                                (user_id,),
                             )
                             children_info = cursor.fetchall()
-                            sorted_by_children_name = sorted(children_info, key=lambda x: x[0])
+                            sorted_by_children_name = sorted(
+                                children_info, key=lambda x: x[0]
+                            )
                             children_join = "; ".join(
-                                f"{child[0]}, {child[1]}" for child in sorted_by_children_name
+                                f"{child[0]}, {child[1]}"
+                                for child in sorted_by_children_name
                             )
                             print(f"{firstname}, {telephone_number}: {children_join}")
 
@@ -168,16 +174,16 @@ class Actions:
             print("Error while finding the similar children by age from database.")
 
     @staticmethod
-    def find_users_with_children_of_age(list_of_ages: List[int]) -> Optional[List[dict]]:
+    def find_users_with_children_of_age(
+        list_of_ages: List[int],
+    ) -> Optional[List[dict]]:
         def has_matching_child(children):
             return any(
                 isinstance(child, dict) and child["age"] in list_of_ages
                 for child in children
             )
 
-        users_with_children = final_users_data[
-            final_users_data["children"].notna()
-        ]
+        users_with_children = final_users_data[final_users_data["children"].notna()]
         users_with_children_of_age = users_with_children[
             users_with_children["children"].apply(has_matching_child)
         ].to_dict(orient="records")
@@ -261,9 +267,7 @@ class Actions:
                 cursor.execute("""SELECT child_age from users_children""")
                 result_ages_of_all_children = cursor.fetchall()
                 if result_ages_of_all_children:
-                    children_ages = [
-                        child[0] for child in result_ages_of_all_children
-                    ]
+                    children_ages = [child[0] for child in result_ages_of_all_children]
                     grouped_ages = Actions.group_children_ages_helper(children_ages)
                     for child_age in grouped_ages:
                         print(f"age: {child_age['age']}, count: {child_age['count']}")
@@ -286,11 +290,11 @@ class Actions:
         try:
             user_data = final_users_data[
                 (
-                        (final_users_data["email"] == self.login)
-                        | (final_users_data["telephone_number"] == self.login)
+                    (final_users_data["email"] == self.login)
+                    | (final_users_data["telephone_number"] == self.login)
                 )
                 & (final_users_data["password"] == self.password)
-                ].to_dict(orient="records")[0]
+            ].to_dict(orient="records")[0]
         except (TypeError, IndexError):
             return None
         else:
@@ -305,11 +309,12 @@ class Actions:
             return children_data
 
     def get_children_of_logged_user_db(self, cursor: Cursor) -> Optional[List[dict]]:
-        cursor.execute("""SELECT uc.child_name, uc.child_age FROM users_children uc
+        cursor.execute(
+            """SELECT uc.child_name, uc.child_age FROM users_children uc
                             JOIN users_data ud ON uc.parent_id = ud.user_id
                             WHERE ud.email = ? OR ud.telephone_number = ?; """,
-                       (self.login, self.login),
-                       )
+            (self.login, self.login),
+        )
         result = cursor.fetchall()
         if result:
             children_data = [{"name": child[0], "age": child[1]} for child in result]
