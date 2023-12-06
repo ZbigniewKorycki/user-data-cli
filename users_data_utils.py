@@ -8,7 +8,7 @@ import pandas as pd
 
 
 class UsersDataExtractor:
-    def __init__(self, path_to_file):
+    def __init__(self, path_to_file: str):
         self.path_to_file = path_to_file
         self.file_extension = self.extract_file_extension()
 
@@ -53,7 +53,7 @@ class UsersDataFormatter:
     TELEPHONE_FORMATTING_PATTERN = r"\s|\+48|\(48\)|^00"
     EMAIL_VALIDATION_PATTERN = r"(^[^@]+@[^@\.]+\.[a-z\d]{1,4}$)"
 
-    def __init__(self, data_to_format):
+    def __init__(self, data_to_format: List[dict]):
         self.data = data_to_format
 
     @staticmethod
@@ -139,11 +139,11 @@ class UsersDataFormatter:
 
 
 class UsersDataMerger:
-    def __init__(self, files_path):
+    def __init__(self, files_path: List[str]):
         self.files_path = files_path
         self.df_merged_users_data = None
 
-    def merge_data(self, data_extractor, data_formatter):
+    def merge_data(self, data_extractor, data_formatter) -> List[dict]:
         merged_data = []
         for path in self.files_path:
             extracted_data = data_extractor(path).extract_data()
@@ -152,7 +152,7 @@ class UsersDataMerger:
                 merged_data.extend(formatted_data)
         return merged_data
 
-    def process_merged_users_data(self, merged_data):
+    def process_merged_users_data(self, merged_data: List[dict]):
         try:
             self.df_merged_users_data = pd.DataFrame(merged_data)
             if not self.df_merged_users_data.empty:

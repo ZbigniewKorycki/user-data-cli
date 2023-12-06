@@ -4,11 +4,13 @@ import itertools
 import os.path
 import sqlite3
 import os
+from sqlite3 import Cursor,Connection
 from typing import Optional, List
+from pandas import DataFrame
 
 
 class Actions:
-    def __init__(self, login, password):
+    def __init__(self, login: str, password: str):
         self.login = login
         self.password = password
         self.authenticated_user = False
@@ -57,7 +59,7 @@ class Actions:
         return wrapper
 
     @staticmethod
-    def is_db_available(db_path) -> bool:
+    def is_db_available(db_path: str) -> bool:
         return True if os.path.exists(db_path) else False
 
     @authentication_required
@@ -302,7 +304,7 @@ class Actions:
         else:
             return children_data
 
-    def get_children_of_logged_user_db(self, cursor) -> Optional[List[dict]]:
+    def get_children_of_logged_user_db(self, cursor: Cursor) -> Optional[List[dict]]:
         cursor.execute("""SELECT uc.child_name, uc.child_age FROM users_children uc 
                             JOIN users_data ud ON uc.parent_id = ud.user_id 
                             WHERE ud.email = ? OR ud.telephone_number = ?; """, (self.login, self.login),
@@ -322,7 +324,7 @@ class Actions:
         else:
             return role
 
-    def get_role_of_logged_user_db(self, cursor) -> Optional[str]:
+    def get_role_of_logged_user_db(self, cursor: Cursor) -> Optional[str]:
         cursor.execute(
             "SELECT role FROM users_data WHERE (email = ? OR telephone_number = ?) AND password = ?;",
             (self.login, self.login, self.password),
@@ -348,7 +350,7 @@ class Actions:
             print("Database exists already.")
 
     @staticmethod
-    def add_users_data_to_db(db_conn, users_data):
+    def add_users_data_to_db(db_conn: Connection, users_data: DataFrame):
         cursor = db_conn.cursor()
         try:
             for index, row in users_data.iterrows():
@@ -377,7 +379,7 @@ class Actions:
             db_conn.rollback()
 
     @staticmethod
-    def create_starting_db_tables(cursor):
+    def create_starting_db_tables(cursor: Cursor):
         cursor.execute(
             """CREATE TABLE IF NOT EXISTS users_data
               (
