@@ -88,8 +88,6 @@ class Actions:
         except sqlite3.Error:
             print("Error while getting user's children from database.")
 
-
-
     @authentication_required
     def find_similar_children_by_age(self):
         if self.db_available:
@@ -128,13 +126,15 @@ class Actions:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
                 try:
-                    ages_of_logged_user_children = [child["age"] for child in self.get_children_of_logged_user_db(cursor)]
+                    ages_of_logged_user_children = [child["age"] for child in
+                                                    self.get_children_of_logged_user_db(cursor)]
                 except TypeError:
                     print(f"User with login: {self.login} has no children.")
                 else:
                     placeholders = ",".join("?" * len(ages_of_logged_user_children))
                     cursor.execute(
-                        """SELECT DISTINCT parent_id FROM users_children WHERE child_age IN ({});""".format(
+                        """SELECT DISTINCT parent_id FROM users_children 
+                            WHERE child_age IN ({});""".format(
                             placeholders
                         ),
                         ages_of_logged_user_children,
@@ -144,14 +144,16 @@ class Actions:
                     ]
                     for user_id in users_with_similar_children_age:
                         cursor.execute(
-                            """SELECT firstname, email, telephone_number FROM users_data WHERE user_id = ? AND (email !=  ? AND telephone_number != ?);""",
+                            """SELECT firstname, email,telephone_number FROM users_data 
+                                    WHERE user_id = ? AND (email !=  ? AND telephone_number != ?);""",
                             (user_id, self.login, self.login),
                         )
                         result = cursor.fetchone()
                         if result:
                             firstname, email, telephone_number = result
                             cursor.execute(
-                                """SELECT child_name, child_age FROM users_children WHERE parent_id = ?;""", (user_id,)
+                                """SELECT child_name, child_age FROM users_children WHERE parent_id = ?;""",
+                                (user_id,)
                             )
                             children_info = cursor.fetchall()
                             sorted_by_children_name = sorted(children_info, key=lambda x: x[0])
@@ -219,10 +221,7 @@ class Actions:
             with sqlite3.connect(db) as db_conn:
                 cursor = db_conn.cursor()
                 cursor.execute(
-                    """SELECT firstname, email, created_at
-                     FROM users_data
-                    ORDER BY created_at ASC
-                    LIMIT 1;"""
+                    """SELECT firstname, email, created_at FROM users_data ORDER BY created_at ASC LIMIT 1;"""
                 )
                 firstname, email, created_at = cursor.fetchone()
                 print(
@@ -304,10 +303,10 @@ class Actions:
             return children_data
 
     def get_children_of_logged_user_db(self, cursor) -> Optional[List[dict]]:
-        cursor.execute(
-            "SELECT uc.child_name, uc.child_age FROM users_children uc JOIN users_data ud ON uc.parent_id = ud.user_id WHERE ud.email = ? OR ud.telephone_number = ?;",
-            (self.login, self.login),
-        )
+        cursor.execute("""SELECT uc.child_name, uc.child_age FROM users_children uc 
+                            JOIN users_data ud ON uc.parent_id = ud.user_id 
+                            WHERE ud.email = ? OR ud.telephone_number = ?; """, (self.login, self.login),
+                       )
         result = cursor.fetchall()
         if result:
             children_data = [{"name": child[0], "age": child[1]} for child in result]
@@ -354,9 +353,9 @@ class Actions:
         try:
             for index, row in users_data.iterrows():
                 cursor.execute(
-                    "INSERT INTO users_data"
-                    "(email, firstname, telephone_number, password, role, created_at)"
-                    " VALUES (?, ?, ?, ?, ?, ?)",
+                    """INSERT INTO users_data
+                        (email, firstname, telephone_number, password, role, created_at) 
+                        VALUES (?, ?, ?, ?, ?, ?)""",
                     (
                         row["email"],
                         row["firstname"],
@@ -370,9 +369,7 @@ class Actions:
                 if row["children"] is not None:
                     for child in row["children"]:
                         cursor.execute(
-                            "INSERT INTO users_children"
-                            "(parent_id, child_name, child_age)"
-                            "VALUES (?, ?, ?)",
+                            """INSERT INTO users_children (parent_id, child_name, child_age) VALUES (?, ?, ?)""",
                             (user_id, child["name"], child["age"]),
                         )
                 db_conn.commit()
@@ -382,25 +379,26 @@ class Actions:
     @staticmethod
     def create_starting_db_tables(cursor):
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS users_data (
-            user_id INTEGER PRIMARY KEY,
-            email TEXT NOT NULL,
-            firstname TEXT NOT NULL,
-            telephone_number TEXT NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            UNIQUE (email, telephone_number)
-        );"""
+            """CREATE TABLE IF NOT EXISTS users_data
+              (
+                 user_id          INTEGER PRIMARY KEY,
+                 email            TEXT NOT NULL,
+                 firstname        TEXT NOT NULL,
+                 telephone_number TEXT NOT NULL,
+                 password         TEXT NOT NULL,
+                 role             TEXT NOT NULL,
+                 created_at       TEXT NOT NULL,
+                 UNIQUE (email, telephone_number)
+              ) 
+        ;"""
         )
 
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS users_children (
-            parent_id INTEGER NOT NULL,
-            child_name TEXT NOT NULL,
-            child_age INTEGER NOT NULL,
-            FOREIGN KEY (parent_id)
-                REFERENCES users_data(user_id)
-                ON DELETE CASCADE
-        );"""
+            """CREATE TABLE IF NOT EXISTS users_children
+              (
+                 parent_id  INTEGER NOT NULL,
+                 child_name TEXT NOT NULL,
+                 child_age  INTEGER NOT NULL,
+                 FOREIGN KEY (parent_id) REFERENCES users_data(user_id) ON DELETE CASCADE
+              );"""
         )
