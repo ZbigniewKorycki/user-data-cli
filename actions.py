@@ -4,7 +4,7 @@ import itertools
 import os.path
 import sqlite3
 import os
-from sqlite3 import Cursor,Connection
+from sqlite3 import Cursor, Connection
 from typing import Optional, List
 from pandas import DataFrame
 

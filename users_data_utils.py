@@ -112,7 +112,7 @@ class UsersDataFormatter:
                 try:
                     child["age"] = int(child["age"])
                 except (ValueError, KeyError):
-                    pass
+                    print(f'Incorrect format of child age: {child}')
         return children_data
 
     @classmethod
@@ -133,7 +133,7 @@ class UsersDataFormatter:
             ]
             validated_data = UsersDataFormatter.filter_valid_data(formatted_data)
         except Exception as e:
-            print(f"Encounter error processing data: {e}")
+            print(f"Encounter error while processing data {e}")
             return None
         return validated_data
 
@@ -166,4 +166,4 @@ class UsersDataMerger:
                     subset=["email"], keep="first", inplace=True
                 )
         except Exception as e:
-            print(f"Error processing merged data: {e}")
+            print(f"Encounter error while processing merged data: {e}")

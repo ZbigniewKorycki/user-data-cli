@@ -1,18 +1,8 @@
-from users_data_utils import UsersDataMerger, UsersDataExtractor, UsersDataFormatter
+from users_data_processor import process_users_data
 import os
 
-
-def process_test_users_data():
-    merger = UsersDataMerger(test_files_path)
-    merged_data = merger.merge_data(UsersDataExtractor, UsersDataFormatter)
-    merger.process_merged_users_data(merged_data)
-    return merger.df_merged_users_data
-
-
-test_files_path = [
+paths = [
     os.path.join(os.path.dirname(__file__), *path.split("/"))
     for path in ["final_test_data.csv"]
 ]
-test_final_users_data = process_test_users_data()
-
-print(test_final_users_data)
+test_final_users_data = process_users_data(paths)
