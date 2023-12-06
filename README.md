@@ -28,11 +28,13 @@ Run the CLI by executing cli.py and pass a command along with user login and pas
 </ul>
 
 <h3>Command Syntax:</h3>
+
 ```bash
 python cli.py <command> --login <user_login> --password <user_password>
 ```
 
 <h3>Example:</h3>
+
 ```bash
 python cli.py print-all-accounts --login briancollins@example.net --password R9AjA5nb$!
 ```
