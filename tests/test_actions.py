@@ -166,5 +166,6 @@ class TestActions(unittest.TestCase):
         action_admin = Actions(login="222222222", password="7GRMc-fg42")
         self.assertEqual(action_admin.get_role_of_logged_user(), "admin")
 
-    if __name__ == "__main__":
-        unittest.main()
+
+if __name__ == "__main__":
+    unittest.main()
