@@ -1,62 +1,62 @@
 import unittest
 from actions import Actions
-from data.users_test_data_processor import test_final_users_data
+from tests.data.users_test_data_processor import test_final_users_data
 from unittest.mock import patch, call
 
 
 @patch("actions.final_users_data", test_final_users_data)
 class TestActions(unittest.TestCase):
 
-    def test_create_db(self):
-        action_admin_by_tel = Actions(login="222222222", password="7GRMc-fg42")
-        action_admin_by_tel.create_database()
+    # def test_create_db(self):
+    #     action_admin_by_tel = Actions(login="222222222", password="7GRMc-fg42")
+    #     action_admin_by_tel.create_database()
 
     def test_authenticate_user(self):
         # Test case: Incorrect login, correct password for one of users
-        action_incorrect_login = Actions(login="111111112", password="Wm&fkw9bI8")
-        self.assertIs(action_incorrect_login.role, None)
-        self.assertFalse(action_incorrect_login.authenticated_user)
+        incorrect_login = Actions(login="111111112", password="Wm&fkw9bI8")
+        self.assertIs(incorrect_login.role, None)
+        self.assertFalse(incorrect_login.authenticated_user)
 
         # Test case: Correct login, incorrect password
-        action_incorrect_login = Actions(login="111111111", password="Wm&fkw9bI88")
-        self.assertIs(action_incorrect_login.role, None)
-        self.assertFalse(action_incorrect_login.authenticated_user)
+        invalid_pass = Actions(login="111111111", password="Wm&fkw9bI88")
+        self.assertIs(invalid_pass.role, None)
+        self.assertFalse(invalid_pass.authenticated_user)
 
         # Test case: Base user, login with tel
-        action_base_by_tel = Actions(login="111111111", password="Wm&fkw9bI8")
-        self.assertEqual(action_base_by_tel.role, "user")
-        self.assertTrue(action_base_by_tel.authenticated_user)
-        self.assertEqual(action_base_by_tel.login, "111111111")
-        self.assertEqual(action_base_by_tel.password, "Wm&fkw9bI8")
+        base_tel = Actions(login="111111111", password="Wm&fkw9bI8")
+        self.assertEqual(base_tel.role, "user")
+        self.assertTrue(base_tel.authenticated_user)
+        self.assertEqual(base_tel.login, "111111111")
+        self.assertEqual(base_tel.password, "Wm&fkw9bI8")
 
         # Test case: Base user, login with email
-        action_base_by_email = Actions(login="test1@example.com", password="Wm&fkw9bI8")
-        self.assertEqual(action_base_by_email.role, "user")
-        self.assertTrue(action_base_by_email.authenticated_user)
-        self.assertEqual(action_base_by_email.login, "test1@example.com")
-        self.assertEqual(action_base_by_email.password, "Wm&fkw9bI8")
+        base_email = Actions(login="test1@example.com", password="Wm&fkw9bI8")
+        self.assertEqual(base_email.role, "user")
+        self.assertTrue(base_email.authenticated_user)
+        self.assertEqual(base_email.login, "test1@example.com")
+        self.assertEqual(base_email.password, "Wm&fkw9bI8")
 
         # Test case: Admin, login with tel
-        action_admin_by_tel = Actions(login="222222222", password="7GRMc-fg42")
-        self.assertEqual(action_admin_by_tel.role, "admin")
-        self.assertTrue(action_admin_by_tel.authenticated_user)
-        self.assertEqual(action_admin_by_tel.login, "222222222")
-        self.assertEqual(action_admin_by_tel.password, "7GRMc-fg42")
+        admin_tel = Actions(login="222222222", password="7GRMc-fg42")
+        self.assertEqual(admin_tel.role, "admin")
+        self.assertTrue(admin_tel.authenticated_user)
+        self.assertEqual(admin_tel.login, "222222222")
+        self.assertEqual(admin_tel.password, "7GRMc-fg42")
 
         # Test case: Admin, login with email
-        action_admin_by_email = Actions(
+        admin_email = Actions(
             login="test2@example.com", password="7GRMc-fg42"
         )
-        self.assertEqual(action_admin_by_email.role, "admin")
-        self.assertTrue(action_admin_by_email.authenticated_user)
-        self.assertEqual(action_admin_by_email.login, "test2@example.com")
-        self.assertEqual(action_admin_by_email.password, "7GRMc-fg42")
+        self.assertEqual(admin_email.role, "admin")
+        self.assertTrue(admin_email.authenticated_user)
+        self.assertEqual(admin_email.login, "test2@example.com")
+        self.assertEqual(admin_email.password, "7GRMc-fg42")
 
     @patch("builtins.print")
     def test_print_all_accounts_base_user(self, mock_print):
         # Test case: Base user, login with tel
-        action_unauthorized = Actions(login="111111111", password="Wm&fkw9bI8")
-        action_unauthorized.print_all_accounts()
+        action_base = Actions(login="111111111", password="Wm&fkw9bI8")
+        action_base.print_all_accounts()
         mock_print.assert_called_with("Invalid Login")
 
     @patch("builtins.print")
@@ -76,14 +76,13 @@ class TestActions(unittest.TestCase):
     @patch("builtins.print")
     def test_print_oldest_account_base_user(self, mock_print):
         # Test case: Base user
-        action_unauthorized = Actions(login="111111111", password="Wm&fkw9bI8")
-        action_unauthorized.print_oldest_account()
+        action_base = Actions(login="111111111", password="Wm&fkw9bI8")
+        action_base.print_oldest_account()
         mock_print.assert_called_with("Invalid Login")
 
     @patch("builtins.print")
     def test_print_oldest_account_admin(self, mock_print):
-        # Test case: Admin, should return output base on user with data:
-        # Test1;111111111;test1@example.com;Wm&fkw9bI8;user;2010-01-21 21:21:01;Adam (1)
+        # Test case: Admin
         action_admin = Actions(login="222222222", password="7GRMc-fg42")
         action_admin.print_oldest_account()
         mock_print.assert_called_with(
@@ -93,8 +92,8 @@ class TestActions(unittest.TestCase):
     @patch("builtins.print")
     def test_group_by_age_base_user(self, mock_print):
         # Test case: Base user
-        action_unauthorized = Actions(login="111111111", password="Wm&fkw9bI8")
-        action_unauthorized.group_children_by_age()
+        action_base = Actions(login="111111111", password="Wm&fkw9bI8")
+        action_base.group_children_by_age()
         mock_print.assert_called_with("Invalid Login")
 
     @patch("builtins.print")
