@@ -102,44 +102,31 @@ class Actions:
             self.find_similar_children_by_age_db()
         else:
             try:
-                users_children_data = self.get_data_of_user_children()
-                ages_of_users_children = [child["age"] for child in users_children_data]
+                ages_of_users_children = [child["age"] for child in self.get_data_of_user_children()]
             except TypeError:
                 print(f"User with login: {self.login} has no children.")
             else:
-                users_with_children = final_users_data[
-                    final_users_data["children"].notna()
-                ]
-                users_with_children_of_similar_age = users_with_children[
-                    users_with_children["children"].apply(
-                        lambda x: (
-                            any(
-                                child["age"] in ages_of_users_children
-                                for child in x
-                                if isinstance(child, dict)
-                            )
+                users_with_children_of_similar_age = Actions.get_users_with_children_of_specific_age(
+                    ages_of_users_children)
+                try:
+                    for user in users_with_children_of_similar_age:
+                        if (
+                                user["telephone_number"] == self.login
+                                or user["email"] == self.login
+                        ):
+                            continue
+                        children_sorted_by_name = sorted(
+                            user["children"], key=lambda x: x["name"]
                         )
-                    )
-                ]
-                similar_users = users_with_children_of_similar_age.to_dict(
-                    orient="records"
-                )
-                for user in similar_users:
-                    if (
-                        user["telephone_number"] == self.login
-                        or user["email"] == self.login
-                    ):
-                        continue
-                    children_sorted_by_name = sorted(
-                        user["children"], key=lambda x: x["name"]
-                    )
-                    all_children_info = "; ".join(
-                        f"{child['name']}, {child['age']}"
-                        for child in children_sorted_by_name
-                    )
-                    print(
-                        f"{user['firstname']}, {user['telephone_number']}: {all_children_info}"
-                    )
+                        all_children_info = "; ".join(
+                            f"{child['name']}, {child['age']}"
+                            for child in children_sorted_by_name
+                        )
+                        print(
+                            f"{user['firstname']}, {user['telephone_number']}: {all_children_info}"
+                        )
+                except IndexError:
+                    print("Not found users with children of the same age.")
 
     @authentication_required
     def find_similar_children_by_age_db(self):
@@ -179,6 +166,22 @@ class Actions:
 
         except sqlite3.Error:
             print("Error while finding the similar children by age from database.")
+
+    @staticmethod
+    def get_users_with_children_of_specific_age(list_of_children_ages_to_match: List[int]) -> Optional[List[dict]]:
+        def has_matching_child(children):
+            return any(
+                isinstance(child, dict) and child["age"] in list_of_children_ages_to_match
+                for child in children
+            )
+
+        users_with_children = final_users_data[
+            final_users_data["children"].notna()
+        ]
+        users_with_children_of_similar_age = users_with_children[
+            users_with_children["children"].apply(has_matching_child)
+        ].to_dict(orient="records")
+        return users_with_children_of_similar_age
 
     @admin_required
     def print_all_accounts(self):
@@ -286,11 +289,11 @@ class Actions:
         try:
             user_data = final_users_data[
                 (
-                    (final_users_data["email"] == self.login)
-                    | (final_users_data["telephone_number"] == self.login)
+                        (final_users_data["email"] == self.login)
+                        | (final_users_data["telephone_number"] == self.login)
                 )
                 & (final_users_data["password"] == self.password)
-            ].to_dict(orient="records")[0]
+                ].to_dict(orient="records")[0]
         except (TypeError, IndexError):
             return None
         else:
