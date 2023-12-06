@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 from typing import List, Optional
 import csv
 import json
-import pandas as pd
 from pandas import DataFrame
 
 
@@ -154,7 +153,7 @@ class UsersDataMerger:
     @staticmethod
     def process_merged_users_data(merged_data: List[dict]) -> DataFrame:
         try:
-            df_merged_data = pd.DataFrame(merged_data)
+            df_merged_data = DataFrame(merged_data)
             if not df_merged_data.empty:
                 df_merged_data = df_merged_data.sort_values(
                     by="created_at", ascending=False
