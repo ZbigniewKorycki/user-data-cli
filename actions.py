@@ -37,8 +37,8 @@ class Actions:
                 if user_role:
                     self.authenticated_user = True
                     self.role = user_role[0]
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
+        except sqlite3.Error:
+            print("Error while authenticating user.")
 
     @staticmethod
     def admin_required(func):
@@ -93,8 +93,8 @@ class Actions:
                         print(f"{child[0]}, {child[1]}")
                 else:
                     print(f"User with login: {self.login} has no children.")
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
+        except sqlite3.Error:
+            print("Error while getting user's children from database.")
 
     @authentication_required
     def find_similar_children_by_age(self):
@@ -177,8 +177,8 @@ class Actions:
                     )
                     print(f"{parent_name}, {parent_telephone}: {children_formatted}")
 
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
+        except sqlite3.Error:
+            print("Error while finding the similar children by age from database.")
 
     @admin_required
     def print_all_accounts(self):
@@ -196,8 +196,8 @@ class Actions:
                 all_accounts = cursor.fetchone()
                 if all_accounts:
                     print(int(all_accounts[0]))
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
+        except sqlite3.Error:
+            print("Error while getting the number of all accounts from database.")
 
     @admin_required
     def print_oldest_account(self):
@@ -231,8 +231,8 @@ class Actions:
                     f"email_address: {email}\n"
                     f"created_at: {created_at}"
                 )
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
+        except sqlite3.Error:
+            print("Error while getting the oldest account from database.")
 
     @admin_required
     def group_children_by_age(self):
@@ -282,8 +282,8 @@ class Actions:
                     )
                     for child_age in grouped_age_of_children:
                         print(f"age: {child_age['age']}, count: {child_age['count']}")
-        except sqlite3.Error as e:
-            print("Error while processing db", e)
+        except sqlite3.Error:
+            print("Error while grouping children by age from database.")
 
     def get_data_of_user(self) -> Optional[dict]:
         try:
@@ -324,8 +324,8 @@ class Actions:
                     Actions.create_starting_db_tables(cursor)
                     Actions.add_users_data_to_db(db_conn, final_users_data)
                     print("Database created and users data added.")
-            except sqlite3.Error as e:
-                print("Error while creating/filling db tables:", e)
+            except sqlite3.Error:
+                print("Error while creating/filling db tables.")
         else:
             print("Database exists already.")
 
@@ -357,8 +357,7 @@ class Actions:
                             (user_id, child["name"], child["age"]),
                         )
                 db_conn.commit()
-        except sqlite3.Error as e:
-            print("Error while filling in db tables:", e)
+        except sqlite3.Error:
             db_conn.rollback()
 
     @staticmethod
