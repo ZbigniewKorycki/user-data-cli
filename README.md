@@ -1,4 +1,4 @@
-<h1>User Actions Command-line Interface</h1>
+<h1>User Data Command-line Interface</h1>
 
 This Command-line Interface (CLI) provides functionality to perform various actions on user data.
 
